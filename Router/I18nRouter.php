@@ -73,7 +73,7 @@ class I18nRouter extends Router
     public function getI18nMatcher()
     {
         if (null === $this->i18nMatcher) {
-            $this->i18nMatcher = new I18nMatcher($this->i18nHelper, $this->getMatcher()); // TODO config class
+            $this->i18nMatcher = $this->i18nHelper->createMatcher($this->getMatcher());
         }
 
         return $this->i18nMatcher;
@@ -87,7 +87,7 @@ class I18nRouter extends Router
     public function getI18nGenerator()
     {
         if (null === $this->i18nGenerator) {
-            $this->i18nGenerator = new I18nUrlGenerator($this->i18nHelper, $this->getGenerator()); // TODO config class
+            $this->i18nGenerator = $this->i18nHelper->createUrlGenerator($this->getGenerator());
         }
 
         return $this->i18nGenerator;

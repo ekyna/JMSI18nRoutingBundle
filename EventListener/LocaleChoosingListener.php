@@ -19,6 +19,7 @@
 namespace JMS\I18nRoutingBundle\EventListener;
 
 use JMS\I18nRoutingBundle\Router\DefaultLocaleResolver;
+use JMS\I18nRoutingBundle\Router\I18nHelper;
 use JMS\I18nRoutingBundle\Router\LocaleResolverInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -39,9 +40,9 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 class LocaleChoosingListener
 {
     /**
-     * @var array
+     * @var I18nHelper
      */
-    private $config;
+    private $helper;
 
     /**
      * @var LocaleResolverInterface
@@ -49,11 +50,11 @@ class LocaleChoosingListener
     private $localeResolver;
 
     /**
-     * @param array $config
+     * @param I18nHelper $helper
      */
-    public function __construct(array $config)
+    public function __construct(I18nHelper $helper)
     {
-        $this->config = $config;
+        $this->helper = $helper;
     }
 
     /**
@@ -77,7 +78,11 @@ class LocaleChoosingListener
             return;
         }
 
-        $locale = $this->getLocaleResolver()->resolveLocale($request, $this->config['locales']) ?: $this->config['default_locale'];
+        $locale = $this
+            ->getLocaleResolver()
+            ->resolveLocale($request, $this->helper->getConfig('locales'))
+            ?: $this->helper->getConfig('default_locale')
+        ;
         $request->setLocale($locale);
 
         $params = $request->query->all();
@@ -94,10 +99,7 @@ class LocaleChoosingListener
     private function getLocaleResolver()
     {
         if (null === $this->localeResolver) {
-            $this->localeResolver = new DefaultLocaleResolver( // TODO config class
-                $this->config['cookie']['name'],
-                $this->config['host_map']
-            );
+            $this->localeResolver = $this->helper->createLocaleResolver();
         }
 
         return $this->localeResolver;

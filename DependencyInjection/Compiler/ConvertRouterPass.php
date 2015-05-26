@@ -37,9 +37,8 @@ class ConvertRouterPass implements CompilerPassInterface
      * @var array
      */
     private $classMap = array(
-        'Symfony\Bundle\FrameworkBundle\Routing\Router' => 'JMS\I18nRoutingBundle\Router\I18nRouter',
-//        'Symfony\Cmf\Component\Routing\DynamicRouter'   => 'JMS\I18nRoutingBundle\Router\Cmf\I18nDynamicRouter',
-//        'Symfony\Cmf\Component\Routing\ChainRouter'     => 'JMS\I18nRoutingBundle\Router\Cmf\I18nChainRouter',
+        'Symfony\Cmf\Component\Routing\DynamicRouter'   => '%jms_i18n_routing.dynamic_router.class%',
+        'Symfony\Bundle\FrameworkBundle\Routing\Router' => '%jms_i18n_routing.router.class%',
     );
 
     /**

@@ -30,7 +30,7 @@ use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-class I18nMatcher
+class I18nMatcher implements I18nMatcherInterface
 {
     /**
      * @var UrlMatcherInterface
@@ -61,26 +61,19 @@ class I18nMatcher
     }
 
     /**
-     * Returns the locale resolver.
-     *
-     * @return LocaleResolverInterface
+     * {@inheritdoc}
      */
     public function getLocaleResolver()
     {
         if (null === $this->localeResolver) {
-            $this->localeResolver = new DefaultLocaleResolver(
-                $this->helper->getConfig('cookie')['name'],
-                $this->helper->getConfig('host_map')
-            );
+            $this->localeResolver = $this->helper->createLocaleResolver();
         }
 
         return $this->localeResolver;
     }
 
     /**
-     * For tests only.
-     *
-     * @param LocaleResolverInterface $resolver
+     * {@inheritdoc}
      */
     public function setLocalResolver(LocaleResolverInterface $resolver)
     {
@@ -88,13 +81,7 @@ class I18nMatcher
     }
 
     /**
-     * Tries to match a URL with a set of routes.
-     *
-     * Returns false if no route matches the URL.
-     *
-     * @param  string $url URL to be parsed
-     *
-     * @return array|false An array of parameters or false if no route matches
+     * {@inheritdoc}
      */
     public function match($url)
     {
@@ -102,11 +89,7 @@ class I18nMatcher
     }
 
     /**
-     * To make compatible with Symfony <2.4
-     *
-     * @param Request $request
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function matchRequest(Request $request)
     {

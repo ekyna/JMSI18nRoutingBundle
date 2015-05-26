@@ -39,25 +39,31 @@ class JMSI18nRoutingExtension extends Extension
         $loader = new XmlFileLoader($container, new FileLocator(array(__DIR__.'/../Resources/config')));
         $loader->load('services.xml');
 
-        $container->setParameter('jms_i18n_routing.default_locale', $config['default_locale']);
-        $container->setParameter('jms_i18n_routing.locales', $config['locales']);
-        $container->setParameter('jms_i18n_routing.catalogue', $config['catalogue']);
-        $container->setParameter('jms_i18n_routing.strategy', $config['strategy']);
-        $container->setParameter('jms_i18n_routing.redirect_to_host', $config['redirect_to_host']);
-        $container->setParameter('jms_i18n_routing.host_map', $config['hosts']);
-        $container->setParameter('jms_i18n_routing.cookie.name', $config['cookie']['name']);
-
         $container->setParameter('jms_i18n_routing.routers_ids', $config['routers']);
 
-        $exposedConfig = array(
-            'i18n_loader_id'   => 'jms_i18n_routing.loader',
-            'default_locale'   => $config['default_locale'],
-            'locales'          => $config['locales'],
-            'redirect_to_host' => $config['redirect_to_host'],
-            'host_map'         => $config['hosts'],
-            'cookie'           => $config['cookie'],
-        );
-        $container->setParameter('jms_i18n_routing.config', $exposedConfig);
+        $classes = $config['class'];
+        $container->setParameter('jms_i18n_routing.router.class', $classes['router']);
+        $container->setParameter('jms_i18n_routing.dynamic_router.class', $classes['dynamic_router']);
+
+        $this->addClassesToCompile(array_values($classes));
+
+        unset($classes['router']);
+        unset($classes['dynamic_router']);
+
+        $container
+            ->getDefinition('jms_i18n_routing.helper')
+            ->replaceArgument(1, array(
+                'i18n_loader_id'   => 'jms_i18n_routing.loader',
+                'default_locale'   => $config['default_locale'],
+                'locales'          => $config['locales'],
+                'catalogue'        => $config['catalogue'],
+                'strategy'         => $config['strategy'],
+                'redirect_to_host' => $config['redirect_to_host'],
+                'host_map'         => $config['hosts'],
+                'cookie'           => $config['cookie'],
+                'class'            => $classes,
+            ))
+        ;
 
         if ('prefix' === $config['strategy']) {
             $container

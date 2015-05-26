@@ -313,11 +313,14 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
             $translator->addResource('yml', __DIR__.'/Fixture/routes.en.yml', 'en', 'routes');
         }
 
-        $container->set('i18n_loader', new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en', 'de', 'fr'), sys_get_temp_dir())));
-
         $helper = new I18nHelper($container, array(
             'i18n_loader_id' => 'i18n_loader',
             'default_locale' => 'en',
+            'locales' => array('en', 'de', 'fr'),
+        ));
+        $container->set('i18n_loader', new I18nLoader(
+            new DefaultRouteExclusionStrategy(),
+            new DefaultPatternGenerationStrategy($helper, $translator, sys_get_temp_dir())
         ));
 
         $router = new I18nRouter($container, $config);
@@ -345,18 +348,21 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
         $translator->addResource('yml', __DIR__.'/Fixture/routes.nl.yml', 'nl', 'routes');
         $translator->addResource('yml', __DIR__.'/Fixture/routes.en.yml', 'en', 'routes');
 
-        $container->set('i18n_loader', new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en_UK', 'en_US', 'nl_NL', 'nl_BE'), sys_get_temp_dir(), 'routes', 'en_UK')));
-
         $helper = new I18nHelper($container, array(
             'i18n_loader_id' => 'i18n_loader',
             'redirect_to_host' => false,
             'default_locale' => 'en_UK',
+            'locales' => array('en_UK', 'en_US', 'nl_NL', 'nl_BE'),
             'host_map' => array(
                 'en_UK' => 'uk.test',
                 'en_US' => 'us.test',
                 'nl_NL' => 'nl.test',
                 'nl_BE' => 'be.test',
             ),
+        ));
+        $container->set('i18n_loader', new I18nLoader(
+            new DefaultRouteExclusionStrategy(),
+            new DefaultPatternGenerationStrategy($helper, $translator, sys_get_temp_dir())
         ));
 
         $router = new I18nRouter($container, $config);

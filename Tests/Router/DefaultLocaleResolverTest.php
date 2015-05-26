@@ -61,8 +61,8 @@ class DefaultLocaleResolverTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->resolver = new DefaultLocaleResolver('hl', array(
-            'en' => 'foo',
-            'de' => 'bar',
+            'foo' => 'en',
+            'bar' => 'de',
         ));
     }
 }

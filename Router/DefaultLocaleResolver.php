@@ -25,7 +25,7 @@ class DefaultLocaleResolver implements LocaleResolverInterface
     public function __construct($cookieName, array $hostMap = array())
     {
         $this->cookieName = $cookieName;
-        $this->hostMap = array_flip($hostMap);
+        $this->hostMap    = $hostMap;
     }
 
     /**
