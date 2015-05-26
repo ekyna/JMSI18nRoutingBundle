@@ -19,10 +19,8 @@
 namespace JMS\I18nRoutingBundle\Router;
 
 use JMS\I18nRoutingBundle\Exception\NotAcceptableLanguageException;
-
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
@@ -35,12 +33,36 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class I18nRouter extends Router
 {
-    private $hostMap = array();
-    private $i18nLoaderId;
+    /**
+     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     */
     private $container;
-    private $defaultLocale;
-    private $redirectToHost = true;
+
+    /**
+     * @var LocaleResolverInterface
+     */
     private $localeResolver;
+
+    /**
+     * @var I18nLoader
+     */
+    private $i18nLoader;
+
+    /**
+     * @var string
+     */
+    private $defaultLocale;
+
+    /**
+     * @var bool
+     */
+    private $redirectToHost = true;
+
+    /**
+     * @var array
+     */
+    private $hostMap = array();
+
 
     /**
      * Constructor.
@@ -58,9 +80,34 @@ class I18nRouter extends Router
         $this->container = func_get_arg(0);
     }
 
+    /**
+     * Sets the locale resolver.
+     *
+     * @param LocaleResolverInterface $resolver
+     */
     public function setLocaleResolver(LocaleResolverInterface $resolver)
     {
         $this->localeResolver = $resolver;
+    }
+
+    /**
+     * Sets the i18n loader.
+     *
+     * @param I18nLoader $loader
+     */
+    public function setI18nLoader(I18nLoader $loader)
+    {
+        $this->i18nLoader = $loader;
+    }
+
+    /**
+     * Sets the default locale.
+     *
+     * @param string $locale
+     */
+    public function setDefaultLocale($locale)
+    {
+        $this->defaultLocale = $locale;
     }
 
     /**
@@ -84,18 +131,14 @@ class I18nRouter extends Router
         $this->hostMap = $hostMap;
     }
 
-    public function setI18nLoaderId($id)
-    {
-        $this->i18nLoaderId = $id;
-    }
-
-    public function setDefaultLocale($locale)
-    {
-        $this->defaultLocale = $locale;
-    }
-
     /**
-     * {@inheritdoc}
+     * Generates a URL from the given parameters.
+     *
+     * @param  string  $name       The name of the route
+     * @param  array   $parameters An array of parameters
+     * @param  Boolean $absolute   Whether to generate an absolute URL
+     *
+     * @return string The generated URL
      */
     public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
     {
@@ -145,7 +188,13 @@ class I18nRouter extends Router
     }
 
     /**
-     * {@inheritdoc}
+     * Tries to match a URL with a set of routes.
+     *
+     * Returns false if no route matches the URL.
+     *
+     * @param  string $url URL to be parsed
+     *
+     * @return array|false An array of parameters or false if no route matches
      */
     public function match($url)
     {

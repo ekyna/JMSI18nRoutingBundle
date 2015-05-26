@@ -18,9 +18,8 @@
 
 namespace JMS\I18nRoutingBundle;
 
+use JMS\I18nRoutingBundle\DependencyInjection\Compiler\ConvertRouterPass;
 use JMS\I18nRoutingBundle\DependencyInjection\JMSI18nRoutingExtension;
-use Symfony\Component\DependencyInjection\Compiler\ResolveDefinitionTemplatesPass;
-use JMS\I18nRoutingBundle\DependencyInjection\Compiler\SetRouterPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -33,7 +32,7 @@ class JMSI18nRoutingBundle extends Bundle
 {
     public function build(ContainerBuilder $container)
     {
-        $container->addCompilerPass(new SetRouterPass());
+        $container->addCompilerPass(new ConvertRouterPass());
     }
 
     public function getContainerExtension()

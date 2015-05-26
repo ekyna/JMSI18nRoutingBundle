@@ -24,21 +24,6 @@
         </service>
         <service id="jms_i18n_routing.locale_resolver" alias="jms_i18n_routing.locale_resolver.default" public="false" />
         
-        <service id="jms_i18n_routing.router" class="%jms_i18n_routing.router.class%" parent="router.default" public="false">
-            <call method="setLocaleResolver">
-                <argument type="service" id="jms_i18n_routing.locale_resolver" />
-            </call>
-            <call method="setI18nLoaderId">
-                <argument>jms_i18n_routing.loader</argument>
-            </call>
-            <call method="setDefaultLocale">
-                <argument>%jms_i18n_routing.default_locale%</argument>
-            </call>
-            <call method="setRedirectToHost">
-                <argument>%jms_i18n_routing.redirect_to_host%</argument>
-            </call>
-        </service>
-        
         <service id="jms_i18n_routing.locale_choosing_listener" class="%jms_i18n_routing.locale_choosing_listener.class%" public="false">
             <argument>%jms_i18n_routing.default_locale%</argument>
             <argument>%jms_i18n_routing.locales%</argument>

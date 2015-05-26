@@ -45,10 +45,7 @@ class JMSI18nRoutingExtension extends Extension
         $container->setParameter('jms_i18n_routing.strategy', $config['strategy']);
         $container->setParameter('jms_i18n_routing.redirect_to_host', $config['redirect_to_host']);
         $container->setParameter('jms_i18n_routing.cookie.name', $config['cookie']['name']);
-
-        $this->addClassesToCompile(array(
-            $container->getDefinition('jms_i18n_routing.router')->getClass(),
-        ));
+        $container->setParameter('jms_i18n_routing.routers', $config['routers']);
 
         if ('prefix' === $config['strategy']) {
             $container
@@ -59,12 +56,7 @@ class JMSI18nRoutingExtension extends Extension
         }
 
         if ($config['hosts']) {
-            $container->setParameter('jms_i18n_routing.hostmap', $config['hosts']);
-            $container
-                ->getDefinition('jms_i18n_routing.router')
-                ->addMethodCall('setHostMap', array('%jms_i18n_routing.hostmap%'))
-            ;
-
+            $container->setParameter('jms_i18n_routing.host_map', $config['hosts']);
             $container
                 ->getDefinition('jms_i18n_routing.locale_resolver.default')
                 ->addArgument(array_flip($config['hosts']))

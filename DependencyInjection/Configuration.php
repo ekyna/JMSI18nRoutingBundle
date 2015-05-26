@@ -114,6 +114,10 @@ final class Configuration implements ConfigurationInterface
                             ->booleanNode('httponly')->defaultFalse()->end()
                         ->end()
                     ->end()
+                    ->arrayNode('routers')
+                        ->prototype('scalar')->end()
+                        ->defaultValue(array('router.default'))
+                    ->end()
                 ->end()
             ->end()
         ;
