@@ -77,6 +77,12 @@ class ConvertRouterPass implements CompilerPassInterface
             return;
         }
 
+        // Checks that translator is enabled
+        $translatorDef = $container->findDefinition('translator');
+        if ('%translator.identity.class%' === $translatorDef->getClass()) {
+            throw new \RuntimeException('The JMSI18nRoutingBundle requires Symfony2\'s translator to be enabled. Please make sure to un-comment the respective section in the framework config.');
+        }
+
         $routers = $container->getParameter('jms_i18n_routing.routers');
         $setHostMap = $container->hasParameter('jms_i18n_routing.host_map');
 
@@ -95,7 +101,7 @@ class ConvertRouterPass implements CompilerPassInterface
             $routerDefinition
                 ->setClass($class)
                 ->addMethodCall('setLocaleResolver', array(new Reference('jms_i18n_routing.locale_resolver')))
-                ->addMethodCall('setI18nLoader', array(new Reference('jms_i18n_routing.loader')))
+                ->addMethodCall('setI18nLoaderId', array('jms_i18n_routing.loader'))
                 ->addMethodCall('setDefaultLocale', array('%jms_i18n_routing.default_locale%'))
                 ->addMethodCall('setRedirectToHost', array('%jms_i18n_routing.redirect_to_host%'))
             ;

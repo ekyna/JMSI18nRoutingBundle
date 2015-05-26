@@ -44,9 +44,9 @@ class I18nRouter extends Router
     private $localeResolver;
 
     /**
-     * @var I18nLoader
+     * @var string
      */
-    private $i18nLoader;
+    private $i18nLoaderId;
 
     /**
      * @var string
@@ -201,13 +201,21 @@ class I18nRouter extends Router
         return $this->matchI18n(parent::match($url), $url);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getRouteCollection()
     {
         $collection = parent::getRouteCollection();
 
-        return $this->container->get($this->i18nLoaderId)->load($collection);
+        return $this->i18nLoader->load($collection);
     }
 
+    /**
+     * Returns the original route collection.
+     *
+     * @return \Symfony\Component\Routing\RouteCollection
+     */
     public function getOriginalRouteCollection()
     {
         return parent::getRouteCollection();
@@ -215,6 +223,10 @@ class I18nRouter extends Router
 
     /**
      * To make compatible with Symfony <2.4
+     *
+     * @param Request $request
+     *
+     * @return array
      */
     public function matchRequest(Request $request)
     {
@@ -228,6 +240,14 @@ class I18nRouter extends Router
         return $this->matchI18n($matcher->matchRequest($request), $pathInfo);
     }
 
+    /**
+     * Match i18n url.
+     *
+     * @param array $params
+     * @param string $url
+     *
+     * @return array|false
+     */
     private function matchI18n(array $params, $url)
     {
         if (false === $params) {

@@ -301,10 +301,10 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
             $translator->addResource('yml', __DIR__.'/Fixture/routes.en.yml', 'en', 'routes');
         }
 
-        $i18nLoader = new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en', 'de', 'fr'), sys_get_temp_dir()));
+        $container->set('i18n_loader', new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en', 'de', 'fr'), sys_get_temp_dir())));
 
         $router = new I18nRouter($container, $config);
-        $router->setI18nLoader($i18nLoader);
+        $router->setI18nLoaderId('i18n_loader');
         $router->setDefaultLocale('en');
 
         if (null !== $localeResolver) {
@@ -329,11 +329,11 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
         $translator->addResource('yml', __DIR__.'/Fixture/routes.nl.yml', 'nl', 'routes');
         $translator->addResource('yml', __DIR__.'/Fixture/routes.en.yml', 'en', 'routes');
 
-        $i18nLoader = new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en_UK', 'en_US', 'nl_NL', 'nl_BE'), sys_get_temp_dir(), 'routes', 'en_UK'));
+        $container->set('i18n_loader', new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en_UK', 'en_US', 'nl_NL', 'nl_BE'), sys_get_temp_dir(), 'routes', 'en_UK')));
 
         $router = new I18nRouter($container, $config);
         $router->setRedirectToHost(false);
-        $router->setI18nLoader($i18nLoader);
+        $router->setI18nLoaderId('i18n_loader');
         $router->setDefaultLocale('en_UK');
         $router->setHostMap(array(
             'en_UK' => 'uk.test',
