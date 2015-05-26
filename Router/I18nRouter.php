@@ -18,187 +18,79 @@
 
 namespace JMS\I18nRoutingBundle\Router;
 
-use JMS\I18nRoutingBundle\Exception\NotAcceptableLanguageException;
-use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
-use Symfony\Component\Routing\RequestContext;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
-use Symfony\Component\Routing\Exception\RouteNotFoundException;
-use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * I18n Router implementation.
  *
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
+ * @author Étienne Dauvergne <contact@ekyna.com>
  */
 class I18nRouter extends Router
 {
     /**
-     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     * @var I18nMatcher
      */
-    private $container;
+    private $i18nMatcher;
 
     /**
-     * @var LocaleResolverInterface
+     * @var I18nUrlGenerator
      */
-    private $localeResolver;
+    private $i18nGenerator;
 
     /**
-     * @var string
+     * @var I18nHelper
      */
-    private $i18nLoaderId;
-
-    /**
-     * @var string
-     */
-    private $defaultLocale;
-
-    /**
-     * @var bool
-     */
-    private $redirectToHost = true;
-
-    /**
-     * @var array
-     */
-    private $hostMap = array();
+    private $i18nHelper;
 
 
     /**
-     * Constructor.
+     * Sets the helper.
      *
-     * The only purpose of this is to make the container available in the sub-class
-     * since it is declared private in the parent class.
-     *
-     * The parameters are not listed explicitly here because they are different for
-     * Symfony 2.0 and 2.1. If we did list them, it would make this class incompatible
-     * with one of both versions.
+     * @param I18nHelper $helper
      */
-    public function __construct()
+    public function setI18nHelper(I18nHelper $helper)
     {
-        call_user_func_array(array('Symfony\Bundle\FrameworkBundle\Routing\Router', '__construct'), func_get_args());
-        $this->container = func_get_arg(0);
+        $this->i18nHelper = $helper;
     }
 
     /**
-     * Sets the locale resolver.
+     * Returns the i18nHelper.
      *
-     * @param LocaleResolverInterface $resolver
+     * @return I18nHelper
      */
-    public function setLocaleResolver(LocaleResolverInterface $resolver)
+    public function getI18nHelper()
     {
-        $this->localeResolver = $resolver;
+        return $this->i18nHelper;
     }
 
     /**
-     * Sets the i18n loader.
+     * Returns the i18n matcher.
      *
-     * @param I18nLoader $loader
+     * @return I18nMatcher
      */
-    public function setI18nLoader(I18nLoader $loader)
+    public function getI18nMatcher()
     {
-        $this->i18nLoader = $loader;
-    }
-
-    /**
-     * Sets the default locale.
-     *
-     * @param string $locale
-     */
-    public function setDefaultLocale($locale)
-    {
-        $this->defaultLocale = $locale;
-    }
-
-    /**
-     * Whether the user should be redirected to a different host if the
-     * matching route is not belonging to the current domain.
-     *
-     * @param Boolean $bool
-     */
-    public function setRedirectToHost($bool)
-    {
-        $this->redirectToHost = (Boolean) $bool;
-    }
-
-    /**
-     * Sets the host map to use.
-     *
-     * @param array $hostMap a map of locales to hosts
-     */
-    public function setHostMap(array $hostMap)
-    {
-        $this->hostMap = $hostMap;
-    }
-
-    /**
-     * Generates a URL from the given parameters.
-     *
-     * @param  string  $name       The name of the route
-     * @param  array   $parameters An array of parameters
-     * @param  Boolean $absolute   Whether to generate an absolute URL
-     *
-     * @return string The generated URL
-     */
-    public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
-    {
-        // determine the most suitable locale to use for route generation
-        $currentLocale = $this->context->getParameter('_locale');
-        if (isset($parameters['_locale'])) {
-            $locale = $parameters['_locale'];
-        } else if ($currentLocale) {
-            $locale = $currentLocale;
-        } else {
-            $locale = $this->defaultLocale;
+        if (null === $this->i18nMatcher) {
+            $this->i18nMatcher = new I18nMatcher($this->i18nHelper, $this->getMatcher()); // TODO config class
         }
 
-        // if the locale is changed, and we have a host map, then we need to
-        // generate an absolute URL
-        if ($currentLocale && $currentLocale !== $locale && $this->hostMap) {
-            $referenceType = self::NETWORK_PATH === $referenceType ? self::NETWORK_PATH : self::ABSOLUTE_URL;
-        }
-        $needsHost = self::NETWORK_PATH === $referenceType || self::ABSOLUTE_URL === $referenceType;
-
-        $generator = $this->getGenerator();
-
-        // if an absolute or network URL is requested, we set the correct host
-        if ($needsHost && $this->hostMap) {
-            $currentHost = $this->context->getHost();
-            $this->context->setHost($this->hostMap[$locale]);
-        }
-
-        try {
-            $url = $generator->generate($locale.I18nLoader::ROUTING_PREFIX.$name, $parameters, $referenceType);
-
-            if ($needsHost && $this->hostMap) {
-                $this->context->setHost($currentHost);
-            }
-
-            return $url;
-        } catch (RouteNotFoundException $ex) {
-            if ($needsHost && $this->hostMap) {
-                $this->context->setHost($currentHost);
-            }
-
-            // fallback to default behavior
-        }
-
-        // use the default behavior if no localized route exists
-        return $generator->generate($name, $parameters, $referenceType);
+        return $this->i18nMatcher;
     }
 
     /**
-     * Tries to match a URL with a set of routes.
+     * Returns the i18n url generator.
      *
-     * Returns false if no route matches the URL.
-     *
-     * @param  string $url URL to be parsed
-     *
-     * @return array|false An array of parameters or false if no route matches
+     * @return I18nUrlGenerator
      */
-    public function match($url)
+    public function getI18nGenerator()
     {
-        return $this->matchI18n(parent::match($url), $url);
+        if (null === $this->i18nGenerator) {
+            $this->i18nGenerator = new I18nUrlGenerator($this->i18nHelper, $this->getGenerator()); // TODO config class
+        }
+
+        return $this->i18nGenerator;
     }
 
     /**
@@ -206,9 +98,7 @@ class I18nRouter extends Router
      */
     public function getRouteCollection()
     {
-        $collection = parent::getRouteCollection();
-
-        return $this->i18nLoader->load($collection);
+        return $this->i18nHelper->getI18nLoader()->load($this->getOriginalRouteCollection());
     }
 
     /**
@@ -222,141 +112,32 @@ class I18nRouter extends Router
     }
 
     /**
-     * To make compatible with Symfony <2.4
-     *
-     * @param Request $request
-     *
-     * @return array
+     * {@inheritdoc}
+     */
+    public function match($url)
+    {
+        return $this->getI18nMatcher()->match($url);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function matchRequest(Request $request)
     {
-        $matcher = $this->getMatcher();
-        $pathInfo = $request->getPathInfo();
-        if (!$matcher instanceof RequestMatcherInterface) {
-            // fallback to the default UrlMatcherInterface
-            return $this->matchI18n($matcher->match($pathInfo), $pathInfo);
-        }
-
-        return $this->matchI18n($matcher->matchRequest($request), $pathInfo);
+        return $this->getI18nMatcher()->matchRequest($request);
     }
 
     /**
-     * Match i18n url.
+     * Generates a URL from the given parameters.
      *
-     * @param array $params
-     * @param string $url
+     * @param  string  $name       The name of the route
+     * @param  array   $parameters An array of parameters
+     * @param  Boolean $absolute   Whether to generate an absolute URL
      *
-     * @return array|false
+     * @return string The generated URL
      */
-    private function matchI18n(array $params, $url)
+    public function generate($name, $parameters = array(), $absolute = false)
     {
-        if (false === $params) {
-            return false;
-        }
-
-        $request = $this->getRequest();
-
-        if (isset($params['_locales'])) {
-            if (false !== $pos = strpos($params['_route'], I18nLoader::ROUTING_PREFIX)) {
-                $params['_route'] = substr($params['_route'], $pos + strlen(I18nLoader::ROUTING_PREFIX));
-            }
-
-            if (!($currentLocale = $this->context->getParameter('_locale'))
-                    && null !== $request) {
-                $currentLocale = $this->localeResolver->resolveLocale(
-                    $request, $params['_locales']
-                );
-
-                // If the locale resolver was not able to determine a locale, then all efforts to
-                // make an informed decision have failed. Just display something as a last resort.
-                if (!$currentLocale) {
-                    $currentLocale = reset($params['_locales']);
-                }
-            }
-
-            if (!in_array($currentLocale, $params['_locales'], true)) {
-                // TODO: We might want to allow the user to be redirected to the route for the given locale if
-                //       it exists regardless of whether it would be on another domain, or the same domain.
-                //       Below we assume that we do not want to redirect always.
-
-                // if the available locales are on a different host, throw a ResourceNotFoundException
-                if ($this->hostMap) {
-                    // generate host maps
-                    $hostMap = $this->hostMap;
-                    $availableHosts = array_map(function($locale) use ($hostMap) {
-                        return $hostMap[$locale];
-                    }, $params['_locales']);
-
-                    $differentHost = true;
-                    foreach ($availableHosts as $host) {
-                        if ($this->hostMap[$currentLocale] === $host) {
-                            $differentHost = false;
-                            break;
-                        }
-                    }
-
-                    if ($differentHost) {
-                        throw new ResourceNotFoundException(sprintf('The route "%s" is not available on the current host "%s", but only on these hosts "%s".',
-                            $params['_route'], $this->hostMap[$currentLocale], implode(', ', $availableHosts)));
-                    }
-                }
-
-                // no host map, or same host means that the given locale is not supported for this route
-                throw new NotAcceptableLanguageException($currentLocale, $params['_locales']);
-            }
-
-            unset($params['_locales']);
-            $params['_locale'] = $currentLocale;
-        } else if (isset($params['_locale']) && 0 < $pos = strpos($params['_route'], I18nLoader::ROUTING_PREFIX)) {
-            $params['_route'] = substr($params['_route'], $pos + strlen(I18nLoader::ROUTING_PREFIX));
-        }
-
-        // check if the matched route belongs to a different locale on another host
-        if (isset($params['_locale'])
-                && isset($this->hostMap[$params['_locale']])
-                && $this->context->getHost() !== $host = $this->hostMap[$params['_locale']]) {
-            if (!$this->redirectToHost) {
-                throw new ResourceNotFoundException(sprintf(
-                    'Resource corresponding to pattern "%s" not found for locale "%s".', $url, $this->getContext()->getParameter('_locale')));
-            }
-
-            return array(
-                '_controller' => 'JMS\I18nRoutingBundle\Controller\RedirectController::redirectAction',
-                'path'        => $url,
-                'host'        => $host,
-                'permanent'   => true,
-                'scheme'      => $this->context->getScheme(),
-                'httpPort'    => $this->context->getHttpPort(),
-                'httpsPort'   => $this->context->getHttpsPort(),
-                '_route'      => $params['_route'],
-            );
-        }
-
-        // if we have no locale set on the route, we try to set one according to the localeResolver
-        // if we don't do this all _internal routes will have the default locale on first request
-        if (!isset($params['_locale'])
-                && null !== $request
-                && $locale = $this->localeResolver->resolveLocale(
-                        $request,
-                        $this->container->getParameter('jms_i18n_routing.locales'))) {
-            $params['_locale'] = $locale;
-        }
-
-        return $params;
-    }
-
-    /**
-     * @return Request|null
-     */
-    private function getRequest()
-    {
-        $request = null;
-        if ($this->container->has('request_stack')) {
-            $request = $this->container->get('request_stack')->getCurrentRequest();
-        } elseif (method_exists($this->container, 'isScopeActive') && $this->container->isScopeActive('request')) {
-            $request = $this->container->get('request');
-        }
-
-        return $request;
+        return $this->getI18nGenerator()->generate($name, $parameters, $absolute);
     }
 }

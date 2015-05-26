@@ -21,6 +21,7 @@ namespace JMS\I18nRoutingBundle\Tests\Router;
 use JMS\I18nRoutingBundle\Router\DefaultPatternGenerationStrategy;
 use JMS\I18nRoutingBundle\Router\DefaultRouteExclusionStrategy;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use JMS\I18nRoutingBundle\Router\I18nHelper;
 use Symfony\Component\Translation\IdentityTranslator;
 use Symfony\Component\Translation\Loader\YamlFileLoader as TranslationLoader;
 use Symfony\Component\Translation\MessageSelector;
@@ -59,10 +60,12 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
     public function testGenerateWithHostMap()
     {
         $router = $this->getRouter();
-        $router->setHostMap(array(
-            'de' => 'de.host',
-            'en' => 'en.host',
-            'fr' => 'fr.host',
+        $router->getI18nHelper()->setConfig(array(
+            'host_map' => array(
+                'de' => 'de.host',
+                'en' => 'en.host',
+                'fr' => 'fr.host',
+            ),
         ));
 
         $this->assertEquals('/welcome-on-our-website', $router->generate('welcome'));
@@ -82,9 +85,11 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
     {
         $router = $this->getRouter();
 
-        $router->setHostMap(array(
-            'en' => 'en.test',
-            'de' => 'de.test',
+        $router->getI18nHelper()->setConfig(array(
+            'host_map' => array(
+                'en' => 'en.test',
+                'de' => 'de.test',
+            ),
         ));
 
         $context = new RequestContext();
@@ -113,10 +118,12 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
     public function testMatch()
     {
         $router = $this->getRouter();
-        $router->setHostMap(array(
-            'en' => 'en.test',
-            'de' => 'de.test',
-            'fr' => 'fr.test',
+        $router->getI18nHelper()->setConfig(array(
+            'host_map' => array(
+                'en' => 'en.test',
+                'de' => 'de.test',
+                'fr' => 'fr.test',
+            ),
         ));
 
         $context = new RequestContext('', 'GET', 'en.test');
@@ -251,11 +258,13 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
     public function testMatchThrowsNotAcceptableLanguageWhenRouteIsUsedByMultipleOtherLocalesOnSameHost()
     {
         $router = $this->getNonRedirectingHostMapRouter();
-        $router->setHostMap(array(
-            'en_US' => 'foo.com',
-            'en_UK' => 'foo.com',
-            'nl_NL' => 'nl.test',
-            'nl_BE' => 'be.test',
+        $router->getI18nHelper()->setConfig(array(
+            'host_map' => array(
+                'en_US' => 'foo.com',
+                'en_UK' => 'foo.com',
+                'nl_NL' => 'nl.test',
+                'nl_BE' => 'be.test',
+            ),
         ));
 
         $context = $router->getContext();
@@ -269,12 +278,15 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
         $localeResolver = $this->getMock('JMS\I18nRoutingBundle\Router\LocaleResolverInterface');
 
         $router = $this->getRouter('routing.yml', null, $localeResolver);
+
         $context = $router->getContext();
         $context->setParameter('_locale', null);
 
-        $ref = new \ReflectionProperty($router, 'container');
+        $helper = $router->getI18nHelper();
+
+        $ref = new \ReflectionProperty($helper, 'container');
         $ref->setAccessible(true);
-        $container = $ref->getValue($router);
+        $container = $ref->getValue($helper);
         $container->addScope(new Scope('request'));
         $container->enterScope('request');
         $container->set('request', $request = Request::create('/'));
@@ -303,12 +315,16 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
 
         $container->set('i18n_loader', new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en', 'de', 'fr'), sys_get_temp_dir())));
 
+        $helper = new I18nHelper($container, array(
+            'i18n_loader_id' => 'i18n_loader',
+            'default_locale' => 'en',
+        ));
+
         $router = new I18nRouter($container, $config);
-        $router->setI18nLoaderId('i18n_loader');
-        $router->setDefaultLocale('en');
+        $router->setI18nHelper($helper);
 
         if (null !== $localeResolver) {
-            $router->setLocaleResolver($localeResolver);
+            $router->getI18nMatcher()->setLocalResolver($localeResolver);
         }
 
         return $router;
@@ -331,16 +347,20 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
 
         $container->set('i18n_loader', new I18nLoader(new DefaultRouteExclusionStrategy(), new DefaultPatternGenerationStrategy('custom', $translator, array('en_UK', 'en_US', 'nl_NL', 'nl_BE'), sys_get_temp_dir(), 'routes', 'en_UK')));
 
-        $router = new I18nRouter($container, $config);
-        $router->setRedirectToHost(false);
-        $router->setI18nLoaderId('i18n_loader');
-        $router->setDefaultLocale('en_UK');
-        $router->setHostMap(array(
-            'en_UK' => 'uk.test',
-            'en_US' => 'us.test',
-            'nl_NL' => 'nl.test',
-            'nl_BE' => 'be.test',
+        $helper = new I18nHelper($container, array(
+            'i18n_loader_id' => 'i18n_loader',
+            'redirect_to_host' => false,
+            'default_locale' => 'en_UK',
+            'host_map' => array(
+                'en_UK' => 'uk.test',
+                'en_US' => 'us.test',
+                'nl_NL' => 'nl.test',
+                'nl_BE' => 'be.test',
+            ),
         ));
+
+        $router = new I18nRouter($container, $config);
+        $router->setI18nHelper($helper);
 
         return $router;
     }

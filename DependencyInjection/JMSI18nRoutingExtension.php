@@ -44,8 +44,20 @@ class JMSI18nRoutingExtension extends Extension
         $container->setParameter('jms_i18n_routing.catalogue', $config['catalogue']);
         $container->setParameter('jms_i18n_routing.strategy', $config['strategy']);
         $container->setParameter('jms_i18n_routing.redirect_to_host', $config['redirect_to_host']);
+        $container->setParameter('jms_i18n_routing.host_map', $config['hosts']);
         $container->setParameter('jms_i18n_routing.cookie.name', $config['cookie']['name']);
-        $container->setParameter('jms_i18n_routing.routers', $config['routers']);
+
+        $container->setParameter('jms_i18n_routing.routers_ids', $config['routers']);
+
+        $exposedConfig = array(
+            'i18n_loader_id'   => 'jms_i18n_routing.loader',
+            'default_locale'   => $config['default_locale'],
+            'locales'          => $config['locales'],
+            'redirect_to_host' => $config['redirect_to_host'],
+            'host_map'         => $config['hosts'],
+            'cookie'           => $config['cookie'],
+        );
+        $container->setParameter('jms_i18n_routing.config', $exposedConfig);
 
         if ('prefix' === $config['strategy']) {
             $container
@@ -55,13 +67,7 @@ class JMSI18nRoutingExtension extends Extension
             ;
         }
 
-        if ($config['hosts']) {
-            $container->setParameter('jms_i18n_routing.host_map', $config['hosts']);
-            $container
-                ->getDefinition('jms_i18n_routing.locale_resolver.default')
-                ->addArgument(array_flip($config['hosts']))
-            ;
-        } elseif ($config['cookie']['enabled']) {
+        if (!$config['hosts'] && $config['cookie']['enabled']) {
             $container
                 ->getDefinition('jms_i18n_routing.cookie_setting_listener')
                 ->addArgument($config['cookie']['name'])

@@ -73,41 +73,37 @@ class ConvertRouterPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        if (!$container->hasParameter('jms_i18n_routing.routers')) {
+        if (!$container->hasParameter('jms_i18n_routing.routers_ids')) {
             return;
         }
 
         // Checks that translator is enabled
         $translatorDef = $container->findDefinition('translator');
         if ('%translator.identity.class%' === $translatorDef->getClass()) {
-            throw new \RuntimeException('The JMSI18nRoutingBundle requires Symfony2\'s translator to be enabled. Please make sure to un-comment the respective section in the framework config.');
+            throw new \RuntimeException(
+                'The JMSI18nRoutingBundle requires Symfony2\'s translator to be enabled. Please '.
+                'make sure to un-comment the respective section in the framework config.'
+            );
         }
 
-        $routers = $container->getParameter('jms_i18n_routing.routers');
-        $setHostMap = $container->hasParameter('jms_i18n_routing.host_map');
+        $routersIds = $container->getParameter('jms_i18n_routing.routers_ids');
 
-        foreach ($routers as $id) {
+        foreach ($routersIds as $id) {
             if (!$container->hasDefinition($id)) {
                 throw new RuntimeException(sprintf('The router "%s" does not exists.', $id));
             }
 
             // Original router definition
-            $routerDefinition = $container->getDefinition($id);
+            $router = $container->getDefinition($id);
 
             // Get the new i18n router class
-            $class = $this->getI18nClass($routerDefinition->getClass(), $container);
+            $class = $this->getI18nClass($router->getClass(), $container);
 
-            // Inject i18n services and parameters
-            $routerDefinition
+            // Change class and inject i18n helper
+            $router
                 ->setClass($class)
-                ->addMethodCall('setLocaleResolver', array(new Reference('jms_i18n_routing.locale_resolver')))
-                ->addMethodCall('setI18nLoaderId', array('jms_i18n_routing.loader'))
-                ->addMethodCall('setDefaultLocale', array('%jms_i18n_routing.default_locale%'))
-                ->addMethodCall('setRedirectToHost', array('%jms_i18n_routing.redirect_to_host%'))
+                ->addMethodCall('setI18nHelper', array(new Reference('jms_i18n_routing.helper')))
             ;
-            if ($setHostMap) {
-                $routerDefinition->addMethodCall('setHostMap', array('%jms_i18n_routing.host_map%'));
-            }
         }
     }
 }

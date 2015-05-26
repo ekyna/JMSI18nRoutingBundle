@@ -18,6 +18,7 @@
 
 namespace JMS\I18nRoutingBundle\EventListener;
 
+use JMS\I18nRoutingBundle\Router\DefaultLocaleResolver;
 use JMS\I18nRoutingBundle\Router\LocaleResolverInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -37,17 +38,29 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
  */
 class LocaleChoosingListener
 {
-    private $defaultLocale;
-    private $locales;
+    /**
+     * @var array
+     */
+    private $config;
+
+    /**
+     * @var LocaleResolverInterface
+     */
     private $localeResolver;
 
-    public function __construct($defaultLocale, array $locales, LocaleResolverInterface $localeResolver)
+    /**
+     * @param array $config
+     */
+    public function __construct(array $config)
     {
-        $this->defaultLocale = $defaultLocale;
-        $this->locales = $locales;
-        $this->localeResolver = $localeResolver;
+        $this->config = $config;
     }
 
+    /**
+     * Kernel exception event handler.
+     *
+     * @param GetResponseForExceptionEvent $event
+     */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
         if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
@@ -64,12 +77,29 @@ class LocaleChoosingListener
             return;
         }
 
-        $locale = $this->localeResolver->resolveLocale($request, $this->locales) ?: $this->defaultLocale;
+        $locale = $this->getLocaleResolver()->resolveLocale($request, $this->config['locales']) ?: $this->config['default_locale'];
         $request->setLocale($locale);
 
         $params = $request->query->all();
         unset($params['hl']);
 
         $event->setResponse(new RedirectResponse($request->getBaseUrl().'/'.$locale.'/'.($params ? '?'.http_build_query($params) : '')));
+    }
+
+    /**
+     * Returns the locale resolver.
+     *
+     * @return LocaleResolverInterface
+     */
+    private function getLocaleResolver()
+    {
+        if (null === $this->localeResolver) {
+            $this->localeResolver = new DefaultLocaleResolver( // TODO config class
+                $this->config['cookie']['name'],
+                $this->config['host_map']
+            );
+        }
+
+        return $this->localeResolver;
     }
 }
