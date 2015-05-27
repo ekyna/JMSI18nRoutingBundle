@@ -25,7 +25,11 @@ use JMS\I18nRoutingBundle\Router\Resolver\LocaleResolverInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
+use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RequestContextAwareInterface;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Class I18nMatcher
@@ -33,7 +37,7 @@ use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-class I18nMatcher implements I18nMatcherInterface
+class I18nMatcher extends UrlMatcher implements I18nMatcherInterface
 {
     /**
      * @var UrlMatcherInterface
@@ -56,9 +60,15 @@ class I18nMatcher implements I18nMatcherInterface
      *
      * @param I18nHelperInterface                         $helper
      * @param RequestMatcherInterface|UrlMatcherInterface $fallbackMatcher
+     * @param RouteCollection                             $routes
+     * @param RequestContext                              $context
      */
-    public function __construct(I18nHelperInterface $helper, $fallbackMatcher)
-    {
+    public function __construct(
+        I18nHelperInterface $helper,
+        $fallbackMatcher,
+        RouteCollection $routes = null,
+        RequestContext $context = null
+    ) {
         if (! $fallbackMatcher instanceof RequestMatcherInterface
             && ! $fallbackMatcher instanceof UrlMatcherInterface) {
             throw new \InvalidArgumentException(
@@ -69,6 +79,13 @@ class I18nMatcher implements I18nMatcherInterface
 
         $this->helper = $helper;
         $this->fallbackMatcher = $fallbackMatcher;
+
+        $this->routes = $routes;
+        if (null !== $context) {
+            $this->context = $context;
+        } elseif ($this->fallbackMatcher instanceof RequestContextAwareInterface) {
+            $this->context = $fallbackMatcher->getContext();
+        }
     }
 
     /**
@@ -94,8 +111,38 @@ class I18nMatcher implements I18nMatcherInterface
     /**
      * {@inheritdoc}
      */
+    public function setContext(RequestContext $context)
+    {
+        $this->context = $context;
+        if ($this->fallbackMatcher instanceof RequestContextAwareInterface) {
+            $this->fallbackMatcher->setContext($context);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function match($url)
     {
+        if (null !== $this->routes) {
+            try {
+                return $this->matchI18n(parent::match($url), $url);
+            } catch(ResourceNotFoundException $e ) {
+            }
+        }
+
+        if ($this->fallbackMatcher instanceof RequestMatcherInterface) {
+            return $this->matchI18n($this->fallbackMatcher->matchRequest(Request::create($url)), $url);
+        }
+
         return $this->matchI18n($this->fallbackMatcher->match($url), $url);
     }
 
@@ -105,6 +152,14 @@ class I18nMatcher implements I18nMatcherInterface
     public function matchRequest(Request $request)
     {
         $pathInfo = $request->getPathInfo();
+
+        if (null !== $this->routes) {
+            try {
+                return $this->matchI18n(parent::matchRequest($request), $pathInfo);
+            } catch(ResourceNotFoundException $e ) {
+            }
+        }
+
         if (!$this->fallbackMatcher instanceof RequestMatcherInterface) {
             // fallback to the default UrlMatcherInterface
             return $this->matchI18n($this->fallbackMatcher->match($pathInfo), $pathInfo);
@@ -127,7 +182,6 @@ class I18nMatcher implements I18nMatcherInterface
             return false;
         }
 
-        $context = $this->fallbackMatcher->getContext();
         $hostMap = $this->helper->getConfig('host_map');
 
         $request = $this->helper->getRequest();
@@ -137,7 +191,7 @@ class I18nMatcher implements I18nMatcherInterface
                 $params['_route'] = substr($params['_route'], $pos + strlen(I18nLoaderInterface::ROUTING_PREFIX));
             }
 
-            if (!($currentLocale = $context->getParameter('_locale')) && null !== $request) {
+            if (!($currentLocale = $this->context->getParameter('_locale')) && null !== $request) {
                 $currentLocale = $this->getLocaleResolver()->resolveLocale($request, $params['_locales']);
 
                 // If the locale resolver was not able to determine a locale, then all efforts to
@@ -185,7 +239,7 @@ class I18nMatcher implements I18nMatcherInterface
         // check if the matched route belongs to a different locale on another host
         if (isset($params['_locale'])
             && isset($hostMap[$params['_locale']])
-            && $context->getHost() !== $host = $hostMap[$params['_locale']]) {
+            && $this->context->getHost() !== $host = $hostMap[$params['_locale']]) {
             if (!$this->helper->getConfig('redirect_to_host')) {
                 throw new ResourceNotFoundException(sprintf(
                     'Resource corresponding to pattern "%s" not found for locale "%s".',
@@ -198,9 +252,9 @@ class I18nMatcher implements I18nMatcherInterface
                 'path'        => $url,
                 'host'        => $host,
                 'permanent'   => true,
-                'scheme'      => $context->getScheme(),
-                'httpPort'    => $context->getHttpPort(),
-                'httpsPort'   => $context->getHttpsPort(),
+                'scheme'      => $this->context->getScheme(),
+                'httpPort'    => $this->context->getHttpPort(),
+                'httpsPort'   => $this->context->getHttpsPort(),
                 '_route'      => $params['_route'],
             );
         }

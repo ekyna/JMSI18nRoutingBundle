@@ -2,7 +2,9 @@
 
 namespace JMS\I18nRoutingBundle\Router\Helper;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Interface I18nHelperInterface
@@ -59,7 +61,13 @@ interface I18nHelperInterface
      * Creates the i18n url generator.
      *
      * @param UrlGeneratorInterface $fallbackGenerator
+     * @param RouteCollection $routes
+     * @param LoggerInterface $logger
      * @return \JMS\I18nRoutingBundle\Router\Generator\I18nUrlGeneratorInterface
      */
-    public function createUrlGenerator(UrlGeneratorInterface $fallbackGenerator);
+    public function createUrlGenerator(
+        UrlGeneratorInterface $fallbackGenerator,
+        RouteCollection $routes = null,
+        LoggerInterface $logger = null
+    );
 }

@@ -59,7 +59,11 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface, I1
     public function getI18nMatcher()
     {
         if (null === $this->i18nMatcher) {
-            $this->i18nMatcher = $this->i18nHelper->createMatcher($this->getMatcher());
+            $this->i18nMatcher = $this->i18nHelper->createMatcher(
+                $this->getMatcher(),
+                $this->getRouteCollection(),
+                $this->getContext()
+            );
         }
 
         return $this->i18nMatcher;
@@ -73,8 +77,10 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface, I1
     public function getI18nGenerator()
     {
         if (null === $this->i18nGenerator) {
-            // TODO Create a new UrlGenerator as the default one use the provider and not the i18n route collection.
-            $this->i18nGenerator = $this->i18nHelper->createUrlGenerator($this->getGenerator());
+            $this->i18nGenerator = $this->i18nHelper->createUrlGenerator(
+                $this->getGenerator(),
+                $this->getRouteCollection()
+            );
         }
 
         return $this->i18nGenerator;
@@ -87,8 +93,8 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface, I1
     {
         if (null === $this->i18nCollection) {
             $this->i18nCollection = $this->i18nHelper->getI18nLoader()->load($this->getOriginalRouteCollection());
-            var_dump($this->i18nCollection);
-            exit();
+//            var_dump($this->i18nCollection);
+//            exit();
         }
 
         return $this->i18nCollection;

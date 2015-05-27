@@ -19,10 +19,13 @@
 namespace JMS\I18nRoutingBundle\Router\Helper;
 
 use JMS\I18nRoutingBundle\Exception\RuntimeException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Class I18nHelper
@@ -144,10 +147,13 @@ class I18nHelper implements I18nHelperInterface
     /**
      * {@inheritdoc}
      */
-    public function createMatcher($fallbackMatcher)
-    {
-        if (! $fallbackMatcher instanceof RequestMatcherInterface
-            && ! $fallbackMatcher instanceof UrlMatcherInterface) {
+    public function createMatcher(
+        $fallbackMatcher,
+        RouteCollection $routes = null,
+        RequestContext $context = null
+    ) {
+        if (! ($fallbackMatcher instanceof RequestMatcherInterface
+            || $fallbackMatcher instanceof UrlMatcherInterface)) {
             throw new \InvalidArgumentException(
                 'Fallback matcher must implement either Symfony\Component\Routing\Matcher\RequestMatcherInterface '.
                 'or Symfony\Component\Routing\Matcher\UrlMatcherInterface'
@@ -156,16 +162,19 @@ class I18nHelper implements I18nHelperInterface
 
         $class = $this->config['class']['matcher'];
 
-        return new $class($this, $fallbackMatcher);
+        return new $class($this, $fallbackMatcher, $routes, $context);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function createUrlGenerator(UrlGeneratorInterface $fallbackGenerator)
-    {
+    public function createUrlGenerator(
+        UrlGeneratorInterface $fallbackGenerator,
+        RouteCollection $routes = null,
+        LoggerInterface $logger = null
+    ) {
         $class = $this->config['class']['generator'];
 
-        return new $class($this, $fallbackGenerator);
+        return new $class($this, $fallbackGenerator, $routes, $logger);
     }
 }

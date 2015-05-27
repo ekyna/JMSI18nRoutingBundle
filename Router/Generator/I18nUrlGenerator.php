@@ -20,8 +20,12 @@ namespace JMS\I18nRoutingBundle\Router\Generator;
 
 use JMS\I18nRoutingBundle\Router\Helper\I18nHelperInterface;
 use JMS\I18nRoutingBundle\Router\Loader\I18nLoaderInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Class I18nUrlGenerator
@@ -29,29 +33,55 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-class I18nUrlGenerator implements I18nUrlGeneratorInterface
+class I18nUrlGenerator extends UrlGenerator implements I18nUrlGeneratorInterface
 {
+    /**
+     * @var I18nHelperInterface
+     */
+    private $helper;
+
     /**
      * @var UrlGeneratorInterface
      */
     private $fallbackGenerator;
 
     /**
-     * @var I18nHelperInterface
-     */
-    private $helper;
-
-
-    /**
      * Constructor.
      *
      * @param I18nHelperInterface   $helper
      * @param UrlGeneratorInterface $fallbackGenerator
+     * @param RouteCollection       $routes
+     * @param LoggerInterface|null  $logger
      */
-    public function __construct(I18nHelperInterface $helper, UrlGeneratorInterface $fallbackGenerator)
-    {
+    public function __construct(
+        I18nHelperInterface   $helper,
+        UrlGeneratorInterface $fallbackGenerator,
+        RouteCollection       $routes = null,
+        LoggerInterface       $logger = null
+    ) {
         $this->helper            = $helper;
         $this->fallbackGenerator = $fallbackGenerator;
+
+        $this->routes            = $routes;
+        $this->context           = $fallbackGenerator->getContext();
+        $this->logger            = $logger;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setContext(RequestContext $context)
+    {
+        $this->context = $context;
+        $this->fallbackGenerator->setContext($context);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getContext()
+    {
+        return $this->context;
     }
 
     /**
@@ -79,16 +109,17 @@ class I18nUrlGenerator implements I18nUrlGeneratorInterface
             $absolute = true;
         }
 
+        // If we've got a route collection, try to generate with it. Else try with the fallback generator
+        $callable = null !== $this->routes ? 'parent::generate' : array($this->fallbackGenerator, 'generate');
+        $args = array($locale.I18nLoaderInterface::ROUTING_PREFIX.$name, $parameters, $absolute);
+
         // if an absolute URL is requested, we set the correct host
         if ($absolute && $hostMap) {
             $currentHost = $context->getHost();
             $context->setHost($hostMap[$locale]);
 
             try {
-                $url = $this->fallbackGenerator->generate(
-                    $locale.I18nLoaderInterface::ROUTING_PREFIX.$name,
-                    $parameters, $absolute
-                );
+                $url = call_user_func_array($callable, $args);
                 $context->setHost($currentHost);
                 return $url;
             } catch (RouteNotFoundException $ex) {
@@ -96,10 +127,7 @@ class I18nUrlGenerator implements I18nUrlGeneratorInterface
             }
         } else {
             try {
-                $url = $this->fallbackGenerator->generate(
-                    $locale.I18nLoaderInterface::ROUTING_PREFIX.$name,
-                    $parameters, $absolute
-                );
+                $url = call_user_func_array($callable, $args);
                 return $url;
             } catch (RouteNotFoundException $ex) {
             }
