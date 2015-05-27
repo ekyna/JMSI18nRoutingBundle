@@ -2,13 +2,14 @@
 
 namespace JMS\I18nRoutingBundle\Tests\Router;
 
-use Symfony\Component\HttpKernel\Kernel;
-
-use JMS\I18nRoutingBundle\Router\DefaultLocaleResolver;
+use JMS\I18nRoutingBundle\Router\Resolver\DefaultLocaleResolver;
 use Symfony\Component\HttpFoundation\Request;
 
 class DefaultLocaleResolverTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var DefaultLocaleResolver
+     */
     private $resolver;
 
     /**

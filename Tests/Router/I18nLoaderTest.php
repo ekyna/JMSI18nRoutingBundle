@@ -18,20 +18,16 @@
 
 namespace JMS\I18nRoutingBundle\Tests\Router;
 
-use JMS\I18nRoutingBundle\Router\DefaultPatternGenerationStrategy;
-
-use JMS\I18nRoutingBundle\Router\DefaultRouteExclusionStrategy;
-
-use JMS\I18nRoutingBundle\Router\I18nHelper;
+use JMS\I18nRoutingBundle\Router\Helper\I18nHelper;
+use JMS\I18nRoutingBundle\Router\Loader\I18nLoader;
+use JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultPatternGenerationStrategy;
+use JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultRouteExclusionStrategy;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Translation\Loader\YamlFileLoader;
 use Symfony\Component\Translation\MessageSelector;
+use Symfony\Component\Translation\Loader\YamlFileLoader;
 use Symfony\Component\Translation\Translator;
-use Symfony\Component\Translation\IdentityTranslator;
-use JMS\I18nRoutingBundle\Router\I18nLoader;
-use JMS\I18nRoutingBundle\Router\I18nRouter;
 
 class I18nLoaderTest extends \PHPUnit_Framework_TestCase
 {

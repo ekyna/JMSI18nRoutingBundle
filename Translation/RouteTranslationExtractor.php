@@ -20,7 +20,7 @@ namespace JMS\I18nRoutingBundle\Translation;
 
 use JMS\I18nRoutingBundle\Router\I18nRouter;
 
-use JMS\I18nRoutingBundle\Router\RouteExclusionStrategyInterface;
+use JMS\I18nRoutingBundle\Router\Loader\Strategy\RouteExclusionStrategyInterface;
 
 use Symfony\Component\Routing\RouterInterface;
 use JMS\TranslationBundle\Model\Message;

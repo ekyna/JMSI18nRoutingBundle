@@ -1,34 +1,17 @@
 <?php
 
-/*
- * Copyright 2012 Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace JMS\I18nRoutingBundle\Router;
 
 use JMS\I18nRoutingBundle\Router\Helper\I18nHelperInterface;
-use Symfony\Bundle\FrameworkBundle\Routing\Router;
+use Symfony\Cmf\Component\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * I18n Router implementation.
- *
- * @author Johannes M. Schmitt <schmittjoh@gmail.com>
+ * Class I18nDynamicRouter
+ * @package JMS\I18nRoutingBundle\Router\Cmf
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-class I18nRouter extends Router implements I18nRouterInterface
+class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface
 {
     /**
      * @var I18nHelperInterface

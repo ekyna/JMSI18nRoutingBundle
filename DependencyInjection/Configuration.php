@@ -37,7 +37,11 @@ final class Configuration implements ConfigurationInterface
                         if ($v['hosts']) {
                             foreach ($v['locales'] as $locale) {
                                 if (!isset($v['hosts'][$locale])) {
-                                    $ex = new InvalidConfigurationException(sprintf('Invalid configuration at path "jms_i18n_routing.hosts": You must set a host for locale "%s".', $locale));
+                                    $ex = new InvalidConfigurationException(sprintf(
+                                        'Invalid configuration at path "jms_i18n_routing.hosts": '.
+                                        'You must set a host for locale "%s".',
+                                        $locale
+                                    ));
                                     $ex->setPath('jms_i18n_routing.hosts');
 
                                     throw $ex;
@@ -46,7 +50,10 @@ final class Configuration implements ConfigurationInterface
                         }
 
                         if (!in_array($v['default_locale'], $v['locales'], true)) {
-                            $ex = new InvalidConfigurationException('Invalid configuration at path "jms_i18n_routing.default_locale": The default locale must be one of the configured locales.');
+                            $ex = new InvalidConfigurationException(
+                                'Invalid configuration at path "jms_i18n_routing.default_locale": '.
+                                'The default locale must be one of the configured locales.'
+                            );
                             $ex->setPath('jms_i18n_routing.default_locale');
 
                             throw $ex;
@@ -91,7 +98,10 @@ final class Configuration implements ConfigurationInterface
                             ->always()
                             ->then(function($v) {
                                 if (count($v) !== count(array_flip($v))) {
-                                    throw new \Exception('Every locale must map to a different host. You cannot have multiple locales map to the same host.');
+                                    throw new \Exception(
+                                        'Every locale must map to a different host. '.
+                                        'You cannot have multiple locales map to the same host.'
+                                    );
                                 }
 
                                 return $v;
@@ -121,11 +131,30 @@ final class Configuration implements ConfigurationInterface
                     ->arrayNode('class')
                         ->addDefaultsIfNotSet()
                         ->children()
-                            ->scalarNode('local_resolver')->defaultValue('JMS\I18nRoutingBundle\Router\DefaultLocaleResolver')->cannotBeEmpty()->end()
-                            ->scalarNode('matcher')->defaultValue('JMS\I18nRoutingBundle\Router\I18nMatcher')->cannotBeEmpty()->end()
-                            ->scalarNode('generator')->defaultValue('JMS\I18nRoutingBundle\Router\I18nUrlGenerator')->cannotBeEmpty()->end()
-                            ->scalarNode('router')->defaultValue('JMS\I18nRoutingBundle\Router\I18nRouter')->cannotBeEmpty()->end()
-                            ->scalarNode('dynamic_router')->defaultValue('JMS\I18nRoutingBundle\Router\Cmf\I18nDynamicRouter')->cannotBeEmpty()->end()
+                            ->scalarNode('local_resolver')
+                                ->defaultValue('JMS\I18nRoutingBundle\Router\Resolver\DefaultLocaleResolver')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('matcher')
+                                ->defaultValue('JMS\I18nRoutingBundle\Router\Matcher\I18nMatcher')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('generator')
+                                ->defaultValue('JMS\I18nRoutingBundle\Router\Generator\I18nUrlGenerator')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('router')
+                                ->defaultValue('JMS\I18nRoutingBundle\Router\I18nRouter')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('dynamic_router')
+                                ->defaultValue('JMS\I18nRoutingBundle\Router\I18nDynamicRouter')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('chain_router')
+                                ->defaultValue('JMS\I18nRoutingBundle\Router\I18nChainRouter')
+                                ->cannotBeEmpty()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

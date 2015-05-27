@@ -22,6 +22,7 @@ use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
@@ -42,13 +43,15 @@ class JMSI18nRoutingExtension extends Extension
         $container->setParameter('jms_i18n_routing.routers_ids', $config['routers']);
 
         $classes = $config['class'];
-        $container->setParameter('jms_i18n_routing.router.class', $classes['router']);
-        $container->setParameter('jms_i18n_routing.dynamic_router.class', $classes['dynamic_router']);
-
         $this->addClassesToCompile(array_values($classes));
 
-        unset($classes['router']);
-        unset($classes['dynamic_router']);
+        foreach(array('router', 'dynamic_router', 'chain_router') as $key) {
+            $classKey = sprintf('jms_i18n_routing.%s.class', $key);
+            if (!$container->has($classKey)) {
+                $container->setParameter($classKey, $classes[$key]);
+            }
+            unset($classes[$key]); // Routers classes are not needed by the helper
+        }
 
         $container
             ->getDefinition('jms_i18n_routing.helper')
@@ -68,6 +71,7 @@ class JMSI18nRoutingExtension extends Extension
         if ('prefix' === $config['strategy']) {
             $container
                 ->getDefinition('jms_i18n_routing.locale_choosing_listener')
+                ->addArgument(new Reference('jms_i18n_routing.helper'))
                 ->setPublic(true)
                 ->addTag('kernel.event_listener', array('event' => 'kernel.exception', 'priority' => 128))
             ;
@@ -76,12 +80,7 @@ class JMSI18nRoutingExtension extends Extension
         if (!$config['hosts'] && $config['cookie']['enabled']) {
             $container
                 ->getDefinition('jms_i18n_routing.cookie_setting_listener')
-                ->addArgument($config['cookie']['name'])
-                ->addArgument($config['cookie']['lifetime'])
-                ->addArgument($config['cookie']['path'])
-                ->addArgument($config['cookie']['domain'])
-                ->addArgument($config['cookie']['secure'])
-                ->addArgument($config['cookie']['httponly'])
+                ->addArgument(new Reference('jms_i18n_routing.helper'))
                 ->setPublic(true)
                 ->addTag('kernel.event_listener', array('event' => 'kernel.response', 'priority' => 256))
             ;

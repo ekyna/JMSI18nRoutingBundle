@@ -275,7 +275,7 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
 
     public function testMatchCallsLocaleResolverIfRouteSupportsMultipleLocalesAndContextHasNoLocale()
     {
-        $localeResolver = $this->getMock('JMS\I18nRoutingBundle\Router\LocaleResolverInterface');
+        $localeResolver = $this->getMock('JMS\I18nRoutingBundle\Router\Resolver\LocaleResolverInterface');
 
         $router = $this->getRouter('routing.yml', null, $localeResolver);
 
