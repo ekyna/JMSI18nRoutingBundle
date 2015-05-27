@@ -37,36 +37,19 @@ class ConvertRouterPass implements CompilerPassInterface
      * @var array
      */
     private $classMap = array(
-        'Symfony\Cmf\Component\Routing\ChainRouter'     => '%jms_i18n_routing.chain_router.class%',
-        'Symfony\Cmf\Component\Routing\DynamicRouter'   => '%jms_i18n_routing.dynamic_router.class%',
-        'Symfony\Bundle\FrameworkBundle\Routing\Router' => '%jms_i18n_routing.router.class%',
+        'Symfony\Cmf\Component\Routing\ChainRouter' => array(
+            'class' => '%jms_i18n_routing.chain_router.class%',
+            'inject_helper' => false,
+        ),
+        'Symfony\Cmf\Component\Routing\DynamicRouter' => array(
+            'class' => '%jms_i18n_routing.dynamic_router.class%',
+            'inject_helper' => true,
+        ),
+        'Symfony\Bundle\FrameworkBundle\Routing\Router' => array(
+            'class' => '%jms_i18n_routing.router.class%',
+            'inject_helper' => true,
+        ),
     );
-
-    /**
-     * Returns the new router class.
-     *
-     * @param string $class
-     * @param ContainerBuilder $container
-     * @return string|false
-     */
-    private function getI18nClass($class, ContainerBuilder $container)
-    {
-        if (preg_match('~^%[a-z0-9-_\.]+%$~i', $class)) {
-            if (!$container->hasParameter($class = trim($class, '%'))) {
-                throw new RuntimeException(sprintf('Can\'t resolve %s parameter.', $class));
-            }
-            $class = $container->getParameter($class);
-        }
-        $reflection = new \ReflectionClass($class);
-
-        foreach ($this->classMap as $base => $i18nClass) {
-            if ($class === $base || $reflection->isSubclassOf($base)) {
-                return $i18nClass;
-            }
-        }
-
-        throw new RuntimeException(sprintf('Can\'t convert %s into a i18n router.', $class));
-    }
 
     /**
      * {@inheritdoc}
@@ -97,13 +80,41 @@ class ConvertRouterPass implements CompilerPassInterface
             $router = $container->getDefinition($id);
 
             // Get the new i18n router class
-            $class = $this->getI18nClass($router->getClass(), $container);
+            $config = $this->getI18nRouterConfig($router->getClass(), $container);
 
-            // Change class and inject i18n helper
-            $router
-                ->setClass($class)
-                ->addMethodCall('setI18nHelper', array(new Reference('jms_i18n_routing.helper')))
-            ;
+            // Change class
+            $router->setClass($config['class']);
+
+            // Inject i18n helper if needed
+            if ($config['inject_helper']) {
+                $router->addMethodCall('setI18nHelper', array(new Reference('jms_i18n_routing.helper')));
+            }
         }
+    }
+
+    /**
+     * Returns the i18n router config.
+     *
+     * @param string $class
+     * @param ContainerBuilder $container
+     * @return array
+     */
+    private function getI18nRouterConfig($class, ContainerBuilder $container)
+    {
+        if (preg_match('~^%[a-z0-9-_\.]+%$~i', $class)) {
+            if (!$container->hasParameter($class = trim($class, '%'))) {
+                throw new RuntimeException(sprintf('Can\'t resolve %s parameter.', $class));
+            }
+            $class = $container->getParameter($class);
+        }
+        $reflection = new \ReflectionClass($class);
+
+        foreach ($this->classMap as $base => $config) {
+            if ($class === $base || $reflection->isSubclassOf($base)) {
+                return $config;
+            }
+        }
+
+        throw new RuntimeException(sprintf('Can\'t convert %s into a i18n router.', $class));
     }
 }

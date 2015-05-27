@@ -54,12 +54,20 @@ class I18nMatcher implements I18nMatcherInterface
     /**
      * Constructor.
      *
-     * @param I18nHelperInterface $helper
-     * @param UrlMatcherInterface $fallbackMatcher
+     * @param I18nHelperInterface                         $helper
+     * @param RequestMatcherInterface|UrlMatcherInterface $fallbackMatcher
      */
-    public function __construct(I18nHelperInterface $helper, UrlMatcherInterface $fallbackMatcher)
+    public function __construct(I18nHelperInterface $helper, $fallbackMatcher)
     {
-        $this->helper          = $helper;
+        if (! $fallbackMatcher instanceof RequestMatcherInterface
+            && ! $fallbackMatcher instanceof UrlMatcherInterface) {
+            throw new \InvalidArgumentException(
+                'Fallback matcher must implement either Symfony\Component\Routing\Matcher\RequestMatcherInterface '.
+                'or Symfony\Component\Routing\Matcher\UrlMatcherInterface'
+            );
+        }
+
+        $this->helper = $helper;
         $this->fallbackMatcher = $fallbackMatcher;
     }
 

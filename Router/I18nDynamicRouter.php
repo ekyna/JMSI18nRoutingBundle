@@ -2,6 +2,7 @@
 
 namespace JMS\I18nRoutingBundle\Router;
 
+use JMS\I18nRoutingBundle\Router\Helper\I18nHelperAwareInterface;
 use JMS\I18nRoutingBundle\Router\Helper\I18nHelperInterface;
 use Symfony\Cmf\Component\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @package JMS\I18nRoutingBundle\Router\Cmf
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface
+class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface, I18nHelperAwareInterface
 {
     /**
      * @var I18nHelperInterface
@@ -28,11 +29,14 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface
      */
     private $i18nGenerator;
 
+    /**
+     * @var \Symfony\Component\Routing\RouteCollection
+     */
+    private $i18nCollection;
+
 
     /**
-     * Sets the helper.
-     *
-     * @param I18nHelperInterface $helper
+     * {@inheritdoc}
      */
     public function setI18nHelper(I18nHelperInterface $helper)
     {
@@ -40,9 +44,7 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface
     }
 
     /**
-     * Returns the i18nHelper.
-     *
-     * @return I18nHelperInterface
+     * {@inheritdoc}
      */
     public function getI18nHelper()
     {
@@ -71,6 +73,7 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface
     public function getI18nGenerator()
     {
         if (null === $this->i18nGenerator) {
+            // TODO Create a new UrlGenerator as the default one use the provider and not the i18n route collection.
             $this->i18nGenerator = $this->i18nHelper->createUrlGenerator($this->getGenerator());
         }
 
@@ -82,7 +85,13 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface
      */
     public function getRouteCollection()
     {
-        return $this->i18nHelper->getI18nLoader()->load($this->getOriginalRouteCollection());
+        if (null === $this->i18nCollection) {
+            $this->i18nCollection = $this->i18nHelper->getI18nLoader()->load($this->getOriginalRouteCollection());
+            var_dump($this->i18nCollection);
+            exit();
+        }
+
+        return $this->i18nCollection;
     }
 
     /**

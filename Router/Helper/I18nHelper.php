@@ -21,6 +21,7 @@ namespace JMS\I18nRoutingBundle\Router\Helper;
 use JMS\I18nRoutingBundle\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 
 /**
@@ -143,8 +144,16 @@ class I18nHelper implements I18nHelperInterface
     /**
      * {@inheritdoc}
      */
-    public function createMatcher(UrlMatcherInterface $fallbackMatcher)
+    public function createMatcher($fallbackMatcher)
     {
+        if (! $fallbackMatcher instanceof RequestMatcherInterface
+            && ! $fallbackMatcher instanceof UrlMatcherInterface) {
+            throw new \InvalidArgumentException(
+                'Fallback matcher must implement either Symfony\Component\Routing\Matcher\RequestMatcherInterface '.
+                'or Symfony\Component\Routing\Matcher\UrlMatcherInterface'
+            );
+        }
+
         $class = $this->config['class']['matcher'];
 
         return new $class($this, $fallbackMatcher);

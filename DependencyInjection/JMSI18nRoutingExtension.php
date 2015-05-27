@@ -43,7 +43,7 @@ class JMSI18nRoutingExtension extends Extension
         $container->setParameter('jms_i18n_routing.routers_ids', $config['routers']);
 
         $classes = $config['class'];
-        $this->addClassesToCompile(array_values($classes));
+        //$this->addClassesToCompile(array_values($classes));
 
         foreach(array('router', 'dynamic_router', 'chain_router') as $key) {
             $classKey = sprintf('jms_i18n_routing.%s.class', $key);

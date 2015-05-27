@@ -3,7 +3,6 @@
 namespace JMS\I18nRoutingBundle\Router\Helper;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 
 /**
  * Interface I18nHelperInterface
@@ -51,10 +50,10 @@ interface I18nHelperInterface
     /**
      * Creates the i18n url matcher.
      *
-     * @param UrlMatcherInterface $fallbackMatcher
+     * @param \Symfony\Component\Routing\Matcher\RequestMatcherInterface|\Symfony\Component\Routing\Matcher\UrlMatcherInterface $fallbackMatcher
      * @return \JMS\I18nRoutingBundle\Router\Matcher\I18nMatcherInterface
      */
-    public function createMatcher(UrlMatcherInterface $fallbackMatcher);
+    public function createMatcher($fallbackMatcher);
 
     /**
      * Creates the i18n url generator.

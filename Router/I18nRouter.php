@@ -18,6 +18,7 @@
 
 namespace JMS\I18nRoutingBundle\Router;
 
+use JMS\I18nRoutingBundle\Router\Helper\I18nHelperAwareInterface;
 use JMS\I18nRoutingBundle\Router\Helper\I18nHelperInterface;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-class I18nRouter extends Router implements I18nRouterInterface
+class I18nRouter extends Router implements I18nRouterInterface, I18nHelperAwareInterface
 {
     /**
      * @var I18nHelperInterface
@@ -45,11 +46,13 @@ class I18nRouter extends Router implements I18nRouterInterface
      */
     private $i18nGenerator;
 
+    /**
+     * @var \Symfony\Component\Routing\RouteCollection
+     */
+    private $i18nCollection;
 
     /**
-     * Sets the helper.
-     *
-     * @param I18nHelperInterface $helper
+     * {@inheritdoc}
      */
     public function setI18nHelper(I18nHelperInterface $helper)
     {
@@ -57,9 +60,7 @@ class I18nRouter extends Router implements I18nRouterInterface
     }
 
     /**
-     * Returns the i18nHelper.
-     *
-     * @return I18nHelperInterface
+     * {@inheritdoc}
      */
     public function getI18nHelper()
     {
@@ -99,7 +100,11 @@ class I18nRouter extends Router implements I18nRouterInterface
      */
     public function getRouteCollection()
     {
-        return $this->i18nHelper->getI18nLoader()->load($this->getOriginalRouteCollection());
+        if (null === $this->i18nCollection) {
+            $this->i18nCollection = $this->i18nHelper->getI18nLoader()->load($this->getOriginalRouteCollection());
+        }
+
+        return $this->i18nCollection;
     }
 
     /**
