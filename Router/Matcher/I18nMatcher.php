@@ -20,7 +20,6 @@ namespace JMS\I18nRoutingBundle\Router\Matcher;
 
 use JMS\I18nRoutingBundle\Exception\NotAcceptableLanguageException;
 use JMS\I18nRoutingBundle\Router\Helper\I18nHelperInterface;
-use JMS\I18nRoutingBundle\Router\Loader\I18nLoader;
 use JMS\I18nRoutingBundle\Router\Loader\I18nLoaderInterface;
 use JMS\I18nRoutingBundle\Router\Resolver\LocaleResolverInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -188,8 +187,8 @@ class I18nMatcher extends UrlMatcher implements I18nMatcherInterface
         $request = $this->helper->getRequest();
 
         if (isset($params['_locales'])) {
-            if (false !== $pos = strpos($params['_route'], I18nLoader::ROUTING_PREFIX)) {
-                $params['_route'] = substr($params['_route'], $pos + strlen(I18nLoader::ROUTING_PREFIX));
+            if (false !== $pos = strpos($params['_route'], I18nLoaderInterface::ROUTING_PREFIX)) {
+                $params['_route'] = substr($params['_route'], $pos + strlen(I18nLoaderInterface::ROUTING_PREFIX));
             }
 
             if (!($currentLocale = $this->context->getParameter('_locale')) && null !== $request) {
@@ -233,8 +232,8 @@ class I18nMatcher extends UrlMatcher implements I18nMatcherInterface
 
             unset($params['_locales']);
             $params['_locale'] = $currentLocale;
-        } else if (isset($params['_locale']) && 0 < $pos = strpos($params['_route'], I18nLoader::ROUTING_PREFIX)) {
-            $params['_route'] = substr($params['_route'], $pos + strlen(I18nLoader::ROUTING_PREFIX));
+        } else if (isset($params['_locale']) && 0 < $pos = strpos($params['_route'], I18nLoaderInterface::ROUTING_PREFIX)) {
+            $params['_route'] = substr($params['_route'], $pos + strlen(I18nLoaderInterface::ROUTING_PREFIX));
         }
 
         // check if the matched route belongs to a different locale on another host

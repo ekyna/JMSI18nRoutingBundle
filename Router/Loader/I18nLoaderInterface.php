@@ -11,6 +11,8 @@ use Symfony\Component\Routing\RouteCollection;
  */
 interface I18nLoaderInterface
 {
+    const ROUTING_PREFIX = '__RG__';
+
     /**
      * Loads and convert the route collection to the i18n route collection.
      *

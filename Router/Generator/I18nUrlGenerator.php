@@ -19,7 +19,6 @@
 namespace JMS\I18nRoutingBundle\Router\Generator;
 
 use JMS\I18nRoutingBundle\Router\Helper\I18nHelperInterface;
-use JMS\I18nRoutingBundle\Router\Loader\I18nLoader;
 use JMS\I18nRoutingBundle\Router\Loader\I18nLoaderInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
@@ -112,7 +111,7 @@ class I18nUrlGenerator extends UrlGenerator implements I18nUrlGeneratorInterface
 
         // If we've got a route collection, try to generate with it. Else try with the fallback generator
         $callable = null !== $this->routes ? 'parent::generate' : array($this->fallbackGenerator, 'generate');
-        $args = array($locale.I18nLoader::ROUTING_PREFIX.$name, $parameters, $absolute);
+        $args = array($locale.I18nLoaderInterface::ROUTING_PREFIX.$name, $parameters, $absolute);
 
         // if an absolute URL is requested, we set the correct host
         if ($absolute && $hostMap) {

@@ -29,9 +29,6 @@ use Symfony\Component\Routing\RouteCollection;
  */
 class I18nLoader implements I18nLoaderInterface
 {
-    // TODO move into the interface (FOSJsRouting BC)
-    const ROUTING_PREFIX = '__RG__';
-
     /**
      * @var RouteExclusionStrategyInterface
      */
