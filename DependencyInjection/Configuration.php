@@ -91,6 +91,7 @@ final class Configuration implements ConfigurationInterface
                             ->thenInvalid('Must be one of the following: prefix, prefix_except_default, or custom (default)')
                         ->end()
                     ->end()
+                    ->scalarNode('exclusion_pattern')->defaultNull()->end()
                     ->booleanNode('prefix_with_locale')->defaultFalse()->end()
                     ->booleanNode('omit_prefix_when_default')->defaultTrue()->end()
                     ->arrayNode('hosts')

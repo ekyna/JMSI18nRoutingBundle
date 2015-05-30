@@ -41,6 +41,7 @@ class JMSI18nRoutingExtension extends Extension
         $loader->load('services.xml');
 
         $container->setParameter('jms_i18n_routing.routers_ids', $config['routers']);
+        $container->setParameter('jms_i18n_routing.exclusion_pattern', $config['exclusion_pattern']);
 
         $classes = $config['class'];
         //$this->addClassesToCompile(array_values($classes));

@@ -32,6 +32,13 @@ use Symfony\Component\Routing\Route;
  */
 class DefaultRouteExclusionStrategy implements RouteExclusionStrategyInterface
 {
+    protected $pattern;
+
+    public function __construct($pattern)
+    {
+        $this->pattern = strlen($pattern) > 0 ? '#'.$pattern.'#' : false;
+    }
+
     public function shouldExcludeRoute($routeName, Route $route)
     {
         if ('_' === $routeName[0]) {
@@ -39,6 +46,10 @@ class DefaultRouteExclusionStrategy implements RouteExclusionStrategyInterface
         }
 
         if (false === $route->getOption('i18n')) {
+            return true;
+        }
+
+        if ($this->pattern && preg_match($this->pattern, $route->getPath())) {
             return true;
         }
 

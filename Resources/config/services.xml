@@ -27,7 +27,9 @@
         
         <service id="jms_i18n_routing.cookie_setting_listener" class="%jms_i18n_routing.cookie_setting_listener.class%" public="false" />
         
-        <service id="jms_i18n_routing.route_exclusion_strategy" class="%jms_i18n_routing.route_exclusion_strategy.class%" public="false" />
+        <service id="jms_i18n_routing.route_exclusion_strategy" class="%jms_i18n_routing.route_exclusion_strategy.class%" public="false">
+            <argument>%jms_i18n_routing.exclusion_pattern%</argument>
+        </service>
         
         <service id="jms_i18n_routing.pattern_generation_strategy.default" class="%jms_i18n_routing.pattern_generation_strategy.class%" public="false">
             <argument type="service" id="jms_i18n_routing.helper" />
