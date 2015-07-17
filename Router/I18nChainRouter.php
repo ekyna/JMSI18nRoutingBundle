@@ -16,7 +16,7 @@ class I18nChainRouter extends ChainRouter implements I18nRouterInterface
     /**
      * @var RouteCollection
      */
-    private $originalRouteCollection;
+    protected $originalRouteCollection;
 
     /**
      * {@inheritdoc}

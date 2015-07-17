@@ -34,22 +34,22 @@ class I18nRouter extends Router implements I18nRouterInterface, I18nHelperAwareI
     /**
      * @var I18nHelperInterface
      */
-    private $i18nHelper;
+    protected $i18nHelper;
 
     /**
      * @var \JMS\I18nRoutingBundle\Router\Matcher\I18nMatcherInterface
      */
-    private $i18nMatcher;
+    protected $i18nMatcher;
 
     /**
      * @var \JMS\I18nRoutingBundle\Router\Generator\I18nUrlGeneratorInterface
      */
-    private $i18nGenerator;
+    protected $i18nGenerator;
 
     /**
      * @var \Symfony\Component\Routing\RouteCollection
      */
-    private $i18nCollection;
+    protected $i18nCollection;
 
     /**
      * {@inheritdoc}

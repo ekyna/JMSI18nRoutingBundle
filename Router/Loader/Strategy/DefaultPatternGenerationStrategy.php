@@ -47,10 +47,14 @@ class DefaultPatternGenerationStrategy implements PatternGenerationStrategyInter
     public function generateI18nPatterns($routeName, Route $route)
     {
         $patterns = array();
+        $i18nPaths = $route->getOption('i18n_paths') ?: array();
         foreach ($route->getOption('i18n_locales') ?: $this->helper->getConfig('locales') as $locale) {
+            if (array_key_exists($locale, $i18nPaths)) {
+                $i18nPattern = $i18nPaths[$locale];
+            }
             // if no translation exists, we use the current pattern
-            if ($routeName === $i18nPattern = $this->translator->trans($routeName, array(), $this->helper->getConfig('catalogue'), $locale)) {
-                $i18nPattern = $route->getPattern();
+            elseif ($routeName === $i18nPattern = $this->translator->trans($routeName, array(), $this->helper->getConfig('catalogue'), $locale)) {
+                $i18nPattern = $route->getPath();
             }
 
             // prefix with locale if requested

@@ -32,12 +32,12 @@ class I18nLoader implements I18nLoaderInterface
     /**
      * @var RouteExclusionStrategyInterface
      */
-    private $routeExclusionStrategy;
+    protected $routeExclusionStrategy;
 
     /**
      * @var PatternGenerationStrategyInterface
      */
-    private $patternGenerationStrategy;
+    protected $patternGenerationStrategy;
 
     /**
      * Constructor.

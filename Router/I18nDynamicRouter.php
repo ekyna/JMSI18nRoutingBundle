@@ -17,22 +17,22 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface, I1
     /**
      * @var I18nHelperInterface
      */
-    private $i18nHelper;
+    protected $i18nHelper;
 
     /**
      * @var \JMS\I18nRoutingBundle\Router\Matcher\I18nMatcherInterface
      */
-    private $i18nMatcher;
+    protected $i18nMatcher;
 
     /**
      * @var \JMS\I18nRoutingBundle\Router\Generator\I18nUrlGeneratorInterface
      */
-    private $i18nGenerator;
+    protected $i18nGenerator;
 
     /**
      * @var \Symfony\Component\Routing\RouteCollection
      */
-    private $i18nCollection;
+    protected $i18nCollection;
 
 
     /**
@@ -93,8 +93,6 @@ class I18nDynamicRouter extends DynamicRouter implements I18nRouterInterface, I1
     {
         if (null === $this->i18nCollection) {
             $this->i18nCollection = $this->i18nHelper->getI18nLoader()->load($this->getOriginalRouteCollection());
-//            var_dump($this->i18nCollection);
-//            exit();
         }
 
         return $this->i18nCollection;
