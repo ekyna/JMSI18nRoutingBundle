@@ -6,43 +6,46 @@
 
     <parameters>
         <parameter key="jms_i18n_routing.helper.class">JMS\I18nRoutingBundle\Router\Helper\I18nHelper</parameter>
-        
+
         <parameter key="jms_i18n_routing.loader.class">JMS\I18nRoutingBundle\Router\Loader\I18nLoader</parameter>
         <parameter key="jms_i18n_routing.route_exclusion_strategy.class">JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultRouteExclusionStrategy</parameter>
         <parameter key="jms_i18n_routing.pattern_generation_strategy.class">JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultPatternGenerationStrategy</parameter>
-        
+
         <parameter key="jms_i18n_routing.locale_choosing_listener.class">JMS\I18nRoutingBundle\EventListener\LocaleChoosingListener</parameter>
         <parameter key="jms_i18n_routing.cookie_setting_listener.class">JMS\I18nRoutingBundle\EventListener\CookieSettingListener</parameter>
-        
+
         <parameter key="jms_i18n_routing.route_translation_extractor.class">JMS\I18nRoutingBundle\Translation\RouteTranslationExtractor</parameter>
     </parameters>
 
     <services>
         <service id="jms_i18n_routing.helper" class="%jms_i18n_routing.helper.class%" public="false">
-            <argument type="service" id="service_container" />
+            <argument type="service" id="request_stack" />
             <argument type="collection" />
+            <call method="setI18nLoader">
+                <argument type="service" id="jms_i18n_routing.loader" />
+            </call>
         </service>
-        
+
         <service id="jms_i18n_routing.locale_choosing_listener" class="%jms_i18n_routing.locale_choosing_listener.class%" public="false" />
-        
+
         <service id="jms_i18n_routing.cookie_setting_listener" class="%jms_i18n_routing.cookie_setting_listener.class%" public="false" />
-        
+
         <service id="jms_i18n_routing.route_exclusion_strategy" class="%jms_i18n_routing.route_exclusion_strategy.class%" public="false">
             <argument>%jms_i18n_routing.exclusion_pattern%</argument>
         </service>
-        
+
         <service id="jms_i18n_routing.pattern_generation_strategy.default" class="%jms_i18n_routing.pattern_generation_strategy.class%" public="false">
             <argument type="service" id="jms_i18n_routing.helper" />
             <argument type="service" id="translator" />
             <argument>%kernel.cache_dir%</argument>
         </service>
         <service id="jms_i18n_routing.pattern_generation_strategy" alias="jms_i18n_routing.pattern_generation_strategy.default" public="false" />
-        
+
         <service id="jms_i18n_routing.loader" class="%jms_i18n_routing.loader.class%">
             <argument type="service" id="jms_i18n_routing.route_exclusion_strategy" />
             <argument type="service" id="jms_i18n_routing.pattern_generation_strategy" />
         </service>
-        
+
         <service id="jms_i18n_routing.route_translation_extractor" class="%jms_i18n_routing.route_translation_extractor.class%" public="false">
             <argument type="service" id="router" />
             <argument type="service" id="jms_i18n_routing.route_exclusion_strategy" />

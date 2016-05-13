@@ -2,6 +2,7 @@
 
 namespace JMS\I18nRoutingBundle\Router\Helper;
 
+use JMS\I18nRoutingBundle\Router\Loader\I18nLoaderInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouteCollection;
@@ -14,9 +15,16 @@ use Symfony\Component\Routing\RouteCollection;
 interface I18nHelperInterface
 {
     /**
+     * Sets the i18n loader.
+     *
+     * @param I18nLoaderInterface $i18nLoader
+     */
+    public function setI18nLoader(I18nLoaderInterface $i18nLoader);
+
+    /**
      * Returns the i18n loader.
      *
-     * @return \JMS\I18nRoutingBundle\Router\Loader\I18nLoaderInterface
+     * @return I18nLoaderInterface
      */
     public function getI18nLoader();
 

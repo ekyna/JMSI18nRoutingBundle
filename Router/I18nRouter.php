@@ -22,6 +22,7 @@ use JMS\I18nRoutingBundle\Router\Helper\I18nHelperAwareInterface;
 use JMS\I18nRoutingBundle\Router\Helper\I18nHelperInterface;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RequestContext;
 
 /**
  * I18n Router implementation.
@@ -98,6 +99,21 @@ class I18nRouter extends Router implements I18nRouterInterface, I18nHelperAwareI
     /**
      * {@inheritdoc}
      */
+    public function setContext(RequestContext $context)
+    {
+        parent::setContext($context);
+
+        if (null !== $this->i18nMatcher) {
+            $this->getI18nMatcher()->setContext($context);
+        }
+        if (null !== $this->i18nGenerator) {
+            $this->getI18nGenerator()->setContext($context);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getRouteCollection()
     {
         if (null === $this->i18nCollection) {
@@ -134,8 +150,8 @@ class I18nRouter extends Router implements I18nRouterInterface, I18nHelperAwareI
     /**
      * {@inheritdoc}
      */
-    public function generate($name, $parameters = array(), $absolute = false)
+    public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
     {
-        return $this->getI18nGenerator()->generate($name, $parameters, $absolute);
+        return $this->getI18nGenerator()->generate($name, $parameters, $referenceType);
     }
 }

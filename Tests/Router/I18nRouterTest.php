@@ -18,24 +18,22 @@
 
 namespace JMS\I18nRoutingBundle\Tests\Router;
 
-use JMS\I18nRoutingBundle\Router\DefaultPatternGenerationStrategy;
-use JMS\I18nRoutingBundle\Router\DefaultRouteExclusionStrategy;
+use JMS\I18nRoutingBundle\Router\Helper\I18nHelper;
+use JMS\I18nRoutingBundle\Router\I18nLoader;
+use JMS\I18nRoutingBundle\Router\I18nRouter;
+use JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultPatternGenerationStrategy;
+use JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultRouteExclusionStrategy;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use JMS\I18nRoutingBundle\Router\I18nHelper;
+use Symfony\Component\Routing\Loader\YamlFileLoader;
+use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Translation\IdentityTranslator;
 use Symfony\Component\Translation\Loader\YamlFileLoader as TranslationLoader;
 use Symfony\Component\Translation\MessageSelector;
 use Symfony\Component\Translation\Translator;
-use JMS\I18nRoutingBundle\Router\I18nLoader;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Routing\Loader\YamlFileLoader;
-use JMS\I18nRoutingBundle\Router\I18nRouter;
-use Symfony\Component\Routing\Exception\RouteNotFoundException;
-use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\DependencyInjection\Scope;
 
 class I18nRouterTest extends \PHPUnit_Framework_TestCase
 {
@@ -275,7 +273,7 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
 
     public function testMatchCallsLocaleResolverIfRouteSupportsMultipleLocalesAndContextHasNoLocale()
     {
-        $localeResolver = $this->getMock('JMS\I18nRoutingBundle\Router\Resolver\LocaleResolverInterface');
+        $localeResolver = $this->createMock('JMS\I18nRoutingBundle\Router\Resolver\LocaleResolverInterface');
 
         $router = $this->getRouter('routing.yml', null, $localeResolver);
 
@@ -284,12 +282,11 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
 
         $helper = $router->getI18nHelper();
 
-        $ref = new \ReflectionProperty($helper, 'container');
+        $ref = new \ReflectionProperty($helper, 'requestStack');
         $ref->setAccessible(true);
-        $container = $ref->getValue($helper);
-        $container->addScope(new Scope('request'));
-        $container->enterScope('request');
-        $container->set('request', $request = Request::create('/'));
+        /** @var RequestStack $requestStack */
+        $requestStack = $ref->getValue($helper);
+        $requestStack->push($request = Request::create('/'));
 
         $localeResolver->expects($this->once())
             ->method('resolveLocale')
@@ -313,15 +310,15 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
             $translator->addResource('yml', __DIR__.'/Fixture/routes.en.yml', 'en', 'routes');
         }
 
-        $helper = new I18nHelper($container, array(
-            'i18n_loader_id' => 'i18n_loader',
+        $helper = new I18nHelper(new RequestStack(), array(
             'default_locale' => 'en',
             'locales' => array('en', 'de', 'fr'),
         ));
-        $container->set('i18n_loader', new I18nLoader(
+        $loader = new I18nLoader(
             new DefaultRouteExclusionStrategy(),
             new DefaultPatternGenerationStrategy($helper, $translator, sys_get_temp_dir())
-        ));
+        );
+        $helper->setI18nLoader($loader);
 
         $router = new I18nRouter($container, $config);
         $router->setI18nHelper($helper);
@@ -348,8 +345,7 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
         $translator->addResource('yml', __DIR__.'/Fixture/routes.nl.yml', 'nl', 'routes');
         $translator->addResource('yml', __DIR__.'/Fixture/routes.en.yml', 'en', 'routes');
 
-        $helper = new I18nHelper($container, array(
-            'i18n_loader_id' => 'i18n_loader',
+        $helper = new I18nHelper(new RequestStack(), array(
             'redirect_to_host' => false,
             'default_locale' => 'en_UK',
             'locales' => array('en_UK', 'en_US', 'nl_NL', 'nl_BE'),
@@ -360,10 +356,11 @@ class I18nRouterTest extends \PHPUnit_Framework_TestCase
                 'nl_BE' => 'be.test',
             ),
         ));
-        $container->set('i18n_loader', new I18nLoader(
+        $loader = new I18nLoader(
             new DefaultRouteExclusionStrategy(),
             new DefaultPatternGenerationStrategy($helper, $translator, sys_get_temp_dir())
-        ));
+        );
+        $helper->setI18nLoader($loader);
 
         $router = new I18nRouter($container, $config);
         $router->setI18nHelper($helper);

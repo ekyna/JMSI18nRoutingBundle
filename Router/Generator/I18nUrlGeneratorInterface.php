@@ -2,12 +2,14 @@
 
 namespace JMS\I18nRoutingBundle\Router\Generator;
 
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 /**
  * Interface I18nUrlGeneratorInterface
  * @package JMS\I18nRoutingBundle\Router\Generator
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-interface I18nUrlGeneratorInterface
+interface I18nUrlGeneratorInterface extends UrlGeneratorInterface
 {
     /**
      * Generates a URL from the given parameters.
