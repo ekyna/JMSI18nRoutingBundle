@@ -22,7 +22,7 @@ use JMS\I18nRoutingBundle\Router\Helper\I18nHelper;
 use JMS\I18nRoutingBundle\Router\Loader\I18nLoader;
 use JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultPatternGenerationStrategy;
 use JMS\I18nRoutingBundle\Router\Loader\Strategy\DefaultRouteExclusionStrategy;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Translation\MessageSelector;
@@ -148,7 +148,7 @@ class I18nLoaderTest extends \PHPUnit_Framework_TestCase
         $translator->addResource('yml', __DIR__.'/Fixture/routes.de.yml', 'de', 'routes');
         $translator->addResource('yml', __DIR__.'/Fixture/routes.en.yml', 'en', 'routes');
 
-        $helper = new I18nHelper(new RequestStack(), array(
+        $helper = new I18nHelper(new Container(), array(
             'strategy' => $strategy,
             'locales'  => array('en', 'de'),
         ));

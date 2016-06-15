@@ -4,14 +4,13 @@ namespace JMS\I18nRoutingBundle\Router\Matcher;
 
 use JMS\I18nRoutingBundle\Router\Resolver\LocaleResolverInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 
 /**
  * Interface I18nMatcherInterface
  * @package JMS\I18nRoutingBundle\Router\Matcher
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-interface I18nMatcherInterface extends UrlMatcherInterface
+interface I18nMatcherInterface
 {
     /**
      * Returns the locale resolver.

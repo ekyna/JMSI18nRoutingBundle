@@ -21,6 +21,7 @@ namespace JMS\I18nRoutingBundle\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\DependencyInjection\ContainerAware;
 
 /**
  * Redirect Controller.

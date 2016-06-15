@@ -53,7 +53,6 @@ class I18nUrlGenerator extends UrlGenerator implements I18nUrlGeneratorInterface
      * @param RouteCollection       $routes
      * @param LoggerInterface|null  $logger
      */
-    /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct(
         I18nHelperInterface   $helper,
         UrlGeneratorInterface $fallbackGenerator,
@@ -88,10 +87,12 @@ class I18nUrlGenerator extends UrlGenerator implements I18nUrlGeneratorInterface
     /**
      * {@inheritdoc}
      */
-    public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH)
+    public function generate($name, $parameters = array(), $absolute = false)
     {
+        $context = $this->fallbackGenerator->getContext();
+
         // determine the most suitable locale to use for route generation
-        $currentLocale = $this->context->getParameter('_locale');
+        $currentLocale = $context->getParameter('_locale');
         if (isset($parameters['_locale'])) {
             $locale = $parameters['_locale'];
         } else if ($currentLocale) {
@@ -105,35 +106,34 @@ class I18nUrlGenerator extends UrlGenerator implements I18nUrlGeneratorInterface
         // if the locale is changed, and we have a host map, then we need to
         // generate an absolute URL
         if ($currentLocale && $currentLocale !== $locale && $hostMap) {
-            $referenceType = self::NETWORK_PATH === $referenceType ? self::NETWORK_PATH : self::ABSOLUTE_URL;
-        }
-        $needsHost = self::NETWORK_PATH === $referenceType || self::ABSOLUTE_URL === $referenceType;
-
-        // if an absolute or network URL is requested, we set the correct host
-        $currentHost = null;
-        if ($needsHost && $hostMap) {
-            $currentHost = $this->context->getHost();
-            $this->context->setHost($hostMap[$locale]);
+            $absolute = true;
         }
 
         // If we've got a route collection, try to generate with it. Else try with the fallback generator
         $callable = null !== $this->routes ? 'parent::generate' : array($this->fallbackGenerator, 'generate');
-        $args = array($locale.I18nLoaderInterface::ROUTING_PREFIX.$name, $parameters, $referenceType);
+        $args = array($locale.I18nLoaderInterface::ROUTING_PREFIX.$name, $parameters, $absolute);
 
-        try {
-            $url = call_user_func_array($callable, $args);
-            if ($needsHost && $hostMap) {
-                $this->context->setHost($currentHost);
+        // if an absolute URL is requested, we set the correct host
+        if ($absolute && $hostMap) {
+            $currentHost = $context->getHost();
+            $context->setHost($hostMap[$locale]);
+
+            try {
+                $url = call_user_func_array($callable, $args);
+                $context->setHost($currentHost);
+                return $url;
+            } catch (RouteNotFoundException $ex) {
+                $context->setHost($currentHost);
             }
-            return $url;
-        } catch (RouteNotFoundException $ex) {
-            if ($needsHost && $hostMap) {
-                $this->context->setHost($currentHost);
+        } else {
+            try {
+                $url = call_user_func_array($callable, $args);
+                return $url;
+            } catch (RouteNotFoundException $ex) {
             }
-            // fallback to default behavior
         }
 
         // use the default behavior if no localized route exists
-        return $this->fallbackGenerator->generate($name, $parameters, $referenceType);
+        return $this->fallbackGenerator->generate($name, $parameters, $absolute);
     }
 }
