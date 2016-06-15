@@ -34,7 +34,7 @@ class DefaultRouteExclusionStrategy implements RouteExclusionStrategyInterface
 {
     protected $pattern;
 
-    public function __construct($pattern = null)
+    public function __construct($pattern)
     {
         $this->pattern = strlen($pattern) > 0 ? '#'.$pattern.'#' : false;
     }

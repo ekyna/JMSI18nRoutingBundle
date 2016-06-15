@@ -75,14 +75,14 @@ class I18nLoader implements I18nLoaderInterface
                 // We still add individual routes for each locale afterwards for faster generation.
                 if (count($locales) > 1) {
                     $catchMultipleRoute = clone $route;
-                    $catchMultipleRoute->setPath($pattern);
+                    $catchMultipleRoute->setPattern($pattern);
                     $catchMultipleRoute->setDefault('_locales', $locales);
                     $i18nCollection->add(implode('_', $locales).I18nLoader::ROUTING_PREFIX.$name, $catchMultipleRoute);
                 }
 
                 foreach ($locales as $locale) {
                     $localeRoute = clone $route;
-                    $localeRoute->setPath($pattern);
+                    $localeRoute->setPattern($pattern);
                     $localeRoute->setDefault('_locale', $locale);
                     $i18nCollection->add($locale.I18nLoader::ROUTING_PREFIX.$name, $localeRoute);
                 }

@@ -19,9 +19,8 @@
 namespace JMS\I18nRoutingBundle\Router\Helper;
 
 use JMS\I18nRoutingBundle\Exception\RuntimeException;
-use JMS\I18nRoutingBundle\Router\Loader\I18nLoaderInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
@@ -36,14 +35,9 @@ use Symfony\Component\Routing\RouteCollection;
 class I18nHelper implements I18nHelperInterface
 {
     /**
-     * @var RequestStack
+     * @var ContainerInterface
      */
-    private $requestStack;
-
-    /**
-     * @var I18nLoaderInterface
-     */
-    private $i18nLoader;
+    private $container;
 
     /**
      * @var array
@@ -54,12 +48,18 @@ class I18nHelper implements I18nHelperInterface
     /**
      * Constructor.
      *
-     * @param RequestStack $request_stack
-     * @param array        $config
+     * @param ContainerInterface $container
+     * @param array              $config
      */
-    public function __construct(RequestStack $request_stack, array $config)
+    public function __construct(ContainerInterface $container, array $config)
     {
-        $this->requestStack = $request_stack;
+        /*
+         *  TODO symfony >= 2.4 :
+         * - inject request_stack
+         * - inject jms_i18n_routing.loader
+         * - remove service_container
+         */
+        $this->container = $container;
 
         $this->setConfig($config);
     }
@@ -67,20 +67,9 @@ class I18nHelper implements I18nHelperInterface
     /**
      * {@inheritdoc}
      */
-    public function setI18nLoader(I18nLoaderInterface $i18nLoader)
-    {
-        $this->i18nLoader = $i18nLoader;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getI18nLoader()
     {
-        if (null === $this->i18nLoader) {
-            throw new \RuntimeException('Please call setI18nLoader first.');
-        }
-        return $this->i18nLoader;
+        return $this->container->get($this->config['i18n_loader_id']);
     }
 
     /**
@@ -90,6 +79,7 @@ class I18nHelper implements I18nHelperInterface
     {
         if (null === $this->config) {
             $this->config = array(
+                'i18n_loader_id'   => 'jms_i18n_routing.loader',
                 'default_locale'   => 'en',
                 'locales'          => array('en'),
                 'catalogue'        => 'routes',
@@ -134,7 +124,11 @@ class I18nHelper implements I18nHelperInterface
      */
     public function getRequest()
     {
-        return $this->requestStack->getMasterRequest(); // TODO check use of master / current request
+        /* TODO symfony >= 2.4 : use request_stack */
+        if ($this->container->isScopeActive('request')) {
+            return $this->container->get('request');
+        }
+        return null;
     }
 
     /**
